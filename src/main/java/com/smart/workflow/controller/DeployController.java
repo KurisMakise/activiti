@@ -4,6 +4,7 @@ import com.smart.workflow.bean.DeploymentVo;
 import com.smart.workflow.bean.ProcessDefinitionVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiSort;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequestMapping("deploy")
 @RestController
 @Api(tags = "流程部署")
+@ApiSort(value = 2)
 @Slf4j
 public class DeployController {
 

@@ -1,10 +1,7 @@
 package com.smart.workflow.controller;
 
 import com.smart.workflow.config.security.SecurityUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.runtime.shared.query.Page;
 import org.activiti.api.runtime.shared.query.Pageable;
@@ -43,6 +40,8 @@ import java.util.Map;
 @RequestMapping("task")
 @Slf4j
 @Api(tags = "任务控制")
+@ApiSort(value = 4)
+
 public class TaskController {
 
     @Autowired

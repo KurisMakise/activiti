@@ -1,6 +1,7 @@
 package com.smart.workflow.controller;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiSort;
 import org.activiti.api.process.model.ProcessInstance;
 import org.activiti.api.process.runtime.ProcessRuntime;
 import org.activiti.bpmn.model.BpmnModel;
@@ -15,7 +16,6 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * 流程图
@@ -38,7 +38,9 @@ import java.util.List;
  */
 @RestController
 @Api(tags = "流程图")
+@ApiSort(value = 5)
 @RequestMapping("chart")
+
 public class FlowChartController {
 
 
@@ -101,3 +103,4 @@ public class FlowChartController {
     }
 
 }
+

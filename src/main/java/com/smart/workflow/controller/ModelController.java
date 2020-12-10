@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiSort;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
@@ -27,6 +28,8 @@ import java.util.List;
 @RequestMapping("model")
 @RestController
 @Api(tags = "流程定义")
+@ApiSort(value = 1)
+
 @Slf4j
 public class ModelController {
 
