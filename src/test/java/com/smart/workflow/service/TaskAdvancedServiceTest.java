@@ -1,6 +1,7 @@
 package com.smart.workflow.service;
 
 import com.smart.workflow.bean.ProcessDefinitionVo;
+import com.smart.workflow.config.security.SecurityUtil;
 import com.smart.workflow.controller.DeployController;
 import com.smart.workflow.controller.ProcessController;
 import com.smart.workflow.controller.TaskController;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author kurisu makise
@@ -35,6 +37,9 @@ class TaskAdvancedServiceTest {
     @Autowired
     private DeployController deployController;
 
+    @Autowired
+    private SecurityUtil securityUtil;
+
     @Test
     void revoke() {
         try {
@@ -54,17 +59,25 @@ class TaskAdvancedServiceTest {
         //查询流程定义
         List<ProcessDefinitionVo> processDefinitionVos = deployController.definitionList();
         //启动流程
-        ProcessInstance test = processController.start(processDefinitionVos.get(1).getId(), "test");
-        try {
+        String businessKey = UUID.randomUUID().toString();
+        ProcessInstance test = processController.start(processDefinitionVos.get(1).getId(), "test", businessKey, null);
 
+        try {
+            securityUtil.logInAs("admin");
             Task task = taskController.getTaskByProcessInstanceId(test.getId());
-            taskAdvancedService.replace(task.getId(), "yga");
+
+            taskController.claim(task.getId());
+            securityUtil.logInAs("user");
+            taskAdvancedService.transfer(task.getId(), "user");
+            taskController.complete(task.getId(), null);
+            taskAdvancedService.revoke(businessKey);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         processController.delete(test.getId());
     }
+
 
     @Test
     void finish() {
