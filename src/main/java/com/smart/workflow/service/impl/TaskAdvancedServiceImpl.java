@@ -3,7 +3,6 @@ package com.smart.workflow.service.impl;
 import com.smart.workflow.service.TaskAdvancedService;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.process.runtime.ProcessRuntime;
-import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.runtime.TaskRuntime;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
@@ -19,6 +18,7 @@ import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,24 +51,23 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     @Autowired
     private ProcessRuntime processRuntime;
 
-
     @Override
+
     public void revoke(String businessKey) throws Exception {
         Task task = taskService.createTaskQuery().processInstanceBusinessKey(businessKey).singleResult();
-        task = taskService.createTaskQuery().processInstanceId(businessKey).singleResult();
         if (task == null) {
             throw new Exception("流程未启动或已执行完成，无法撤回");
         }
 
         List<HistoricTaskInstance> htiList = historyService.createHistoricTaskInstanceQuery()
-                .processInstanceId(businessKey)
+                .processInstanceBusinessKey(businessKey)
                 .orderByTaskCreateTime()
                 .asc()
                 .list();
         String myTaskId = null;
         HistoricTaskInstance myTask = null;
         for (HistoricTaskInstance hti : htiList) {
-            if ("system".equals(hti.getAssignee())) {
+            if (Authentication.getAuthenticatedUserId().equals(hti.getAssignee())) {
                 myTaskId = hti.getId();
                 myTask = hti;
                 break;
@@ -133,13 +132,8 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     }
 
     @Override
-    public void replace(String taskId, String replaceUser) throws Exception {
-        org.activiti.api.task.model.Task task = taskRuntime.task(taskId);
-        if (task == null) {
-            throw new Exception("流程未启动或已执行完成");
-        }
-
-        taskRuntime.claim(TaskPayloadBuilder.claim().withTaskId(task.getId()).withAssignee(replaceUser).build());
+    public void transfer(String taskId, String replaceUser) {
+        taskService.setAssignee(taskId, replaceUser);
     }
 
     @Override

@@ -26,10 +26,10 @@ public interface TaskAdvancedService {
     /**
      * 替换待办人员
      *
-     * @param taskId 任务id
+     * @param taskId      任务id
      * @param replaceUser 替换人员
      */
-    void replace(String taskId, String replaceUser) throws Exception;
+    void transfer(String taskId, String replaceUser);
 
     /**
      * 终止流程

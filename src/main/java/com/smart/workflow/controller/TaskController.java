@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 任务
@@ -43,7 +44,6 @@ public class TaskController {
     @PostMapping("create")
     @ApiOperation("创建任务")
     public void create(String taskName, String description, String group, int priority) {
-        securityUtil.logInAs("system");
         taskRuntime.create(
                 TaskPayloadBuilder.create()
                         .withName(taskName)
@@ -79,12 +79,10 @@ public class TaskController {
     @GetMapping
     @ApiOperation("查询任务")
     public Page<Task> tasks(int start, int end) {
-        securityUtil.logInAs("system");
         return taskRuntime.tasks(Pageable.of(start, end));
     }
 
     @GetMapping("{taskId}")
-    @ApiOperation("查询单个任务")
     public Task task(@PathVariable String taskId) {
         return taskRuntime.task(taskId);
     }
@@ -92,8 +90,6 @@ public class TaskController {
     @PutMapping("{taskId}/claim")
     @ApiOperation("认领任务")
     public void claim(@PathVariable String taskId) {
-        log.info(">>> task:" + taskId + " complete");
-        securityUtil.logInAs("system");
         taskRuntime.claim(TaskPayloadBuilder.claim().withTaskId(taskId).build());
     }
 
@@ -104,10 +100,10 @@ public class TaskController {
             @ApiImplicitParam(name = "taskId", value = "任务ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "variables", value = "填充参数", dataType = "body", paramType = "query"),
     })
-    public void complete(@PathVariable String taskId) {
+    public void complete(@PathVariable String taskId, Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
-        securityUtil.logInAs("system");
-        taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).build());
+
+        taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).withVariables(variables).build());
     }
 
 }

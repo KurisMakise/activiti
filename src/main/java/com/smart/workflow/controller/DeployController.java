@@ -71,6 +71,7 @@ public class DeployController {
     @DeleteMapping("{deploymentId}")
     @ApiOperation("删除已发布实例")
     public void delete(@PathVariable String deploymentId) {
+        //删除发布实例   级联删除 repositoryService.deleteDeployment(deploymentId, true)
         repositoryService.deleteDeployment(deploymentId);
     }
 

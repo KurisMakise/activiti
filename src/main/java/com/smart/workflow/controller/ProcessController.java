@@ -12,6 +12,8 @@ import org.activiti.api.runtime.shared.query.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 流程
  *
@@ -48,12 +50,13 @@ public class ProcessController {
 
     @PutMapping("start")
     @ApiOperation("启动流程")
-    public ProcessInstance start(String processDefinitionKey, String name) {
+    public ProcessInstance start(String processDefinitionKey, String name, String businessKey, Map<String, Object> variables) {
         return processRuntime.start(ProcessPayloadBuilder.
                 start()
                 .withProcessDefinitionKey(processDefinitionKey)
                 .withName(name)
-                .withVariables(null)
+                .withBusinessKey(businessKey)
+                .withVariables(variables)
                 .build());
 
     }
