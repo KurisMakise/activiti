@@ -27,7 +27,7 @@ import java.util.List;
  */
 @RequestMapping("model")
 @RestController
-@Api(tags = "流程定义")
+@Api(tags = "模型管理")
 @ApiSort(value = 1)
 
 @Slf4j

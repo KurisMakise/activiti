@@ -21,9 +21,8 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("process")
-@Api(tags = "流程控制")
+@Api(tags = "模型实例控制")
 @ApiSort(value = 3)
-
 public class ProcessController {
 
     @Autowired

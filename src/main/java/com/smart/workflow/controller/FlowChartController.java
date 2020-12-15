@@ -66,8 +66,6 @@ public class FlowChartController {
     public void image(HttpServletResponse response, @PathVariable String processInstanceId) throws IOException {
         InputStream svgStream = getDiagram(processInstanceId);
 
-//        FileUtils.copyInputStreamToFile(svgStream, new File("D:444.svg"));
-
         TranscoderInput input = new TranscoderInput(svgStream);
         PNGTranscoder transcoder = new PNGTranscoder();
         TranscoderOutput output = new TranscoderOutput(response.getOutputStream());

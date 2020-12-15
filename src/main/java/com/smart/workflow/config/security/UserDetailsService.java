@@ -31,6 +31,7 @@ public class UserDetailsService {
         String[][] usersGroupsAndRoles = {
                 {"system", "password", "ROLE_ACTIVITI_USER"},
                 {"admin", "password", "ROLE_ACTIVITI_ADMIN"},
+                {"yga", "password", "ROLE_ACTIVITI_ADMIN"},
         };
 
         for (String[] user : usersGroupsAndRoles) {
@@ -41,7 +42,6 @@ public class UserDetailsService {
         }
 
         return inMemoryUserDetailsManager;
-
     }
 
     @Bean
