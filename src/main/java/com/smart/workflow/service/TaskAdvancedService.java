@@ -19,9 +19,9 @@ public interface TaskAdvancedService {
      * 任意跳转
      *
      * @param businessKey 业务id
-     * @param target      跳转目标
+     * @param targetTaskId      跳转目标任务id
      */
-    void jump(String businessKey, String target);
+    void jump(String businessKey, String targetTaskId);
 
     /**
      * 替换待办人员

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.smart.workflow.mapper.HisActivityDao">
+  <resultMap id="BaseResultMap" type="com.smart.workflow.po.HisActivity">
+    <id column="ID_" jdbcType="VARCHAR" property="id" />
+    <result column="PROC_DEF_ID_" jdbcType="VARCHAR" property="procDefId" />
+    <result column="PROC_INST_ID_" jdbcType="VARCHAR" property="procInstId" />
+    <result column="EXECUTION_ID_" jdbcType="VARCHAR" property="executionId" />
+    <result column="ACT_ID_" jdbcType="VARCHAR" property="actId" />
+    <result column="TASK_ID_" jdbcType="VARCHAR" property="taskId" />
+    <result column="CALL_PROC_INST_ID_" jdbcType="VARCHAR" property="callProcInstId" />
+    <result column="ACT_NAME_" jdbcType="VARCHAR" property="actName" />
+    <result column="ACT_TYPE_" jdbcType="VARCHAR" property="actType" />
+    <result column="ASSIGNEE_" jdbcType="VARCHAR" property="assignee" />
+    <result column="START_TIME_" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="END_TIME_" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="DURATION_" jdbcType="BIGINT" property="duration" />
+    <result column="DELETE_REASON_" jdbcType="VARCHAR" property="deleteReason" />
+    <result column="TENANT_ID_" jdbcType="VARCHAR" property="tenantId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    ID_, PROC_DEF_ID_, PROC_INST_ID_, EXECUTION_ID_, ACT_ID_, TASK_ID_, CALL_PROC_INST_ID_,
+    ACT_NAME_, ACT_TYPE_, ASSIGNEE_, START_TIME_, END_TIME_, DURATION_, DELETE_REASON_,
+    TENANT_ID_
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from act_hi_actinst
+    where ID_ = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByTaskId"  parameterType="java.lang.String"  resultMap="BaseResultMap">
+     select
+    <include refid="Base_Column_List"/>
+    from act_hi_actinst
+    where TASK_ID_ = #{taskId,jdbcType=VARCHAR}
+  </select>
+
+
+</mapper>

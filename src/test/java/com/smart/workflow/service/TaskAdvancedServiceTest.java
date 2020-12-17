@@ -92,12 +92,18 @@ class TaskAdvancedServiceTest {
             taskController.claim(task1.getId());
             taskController.complete(task1.getId(), variables);
 
+            taskAdvancedService.revoke(businessKey);
+
+            task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("manager").singleResult();
+            securityUtil.logInAs("manager");
+            taskController.claim(task1.getId());
+            taskController.complete(task1.getId(), variables);
+
             task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("generalManager").singleResult();
             securityUtil.logInAs("generalManager");
             taskController.claim(task1.getId());
             taskController.complete(task1.getId(), variables);
 
-//            taskAdvancedService.transfer(task.getId(), "user");
         } catch (Exception e) {
             e.printStackTrace();
         }

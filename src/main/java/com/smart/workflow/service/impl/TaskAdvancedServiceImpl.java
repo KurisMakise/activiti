@@ -1,5 +1,7 @@
 package com.smart.workflow.service.impl;
 
+import com.smart.workflow.mapper.HisActivityDao;
+import com.smart.workflow.po.HisActivity;
 import com.smart.workflow.service.TaskAdvancedService;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.process.runtime.ProcessRuntime;
@@ -16,14 +18,12 @@ import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.Execution;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author kurisu makise
@@ -49,6 +49,9 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     private TaskRuntime taskRuntime;
     @Autowired
     private ProcessRuntime processRuntime;
+
+    @Autowired
+    private HisActivityDao hisActivityDao;
 
     @Override
     public void revoke(String businessKey) throws Exception {
@@ -108,13 +111,13 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
         List<SequenceFlow> newSequenceFlowList = new ArrayList<SequenceFlow>();
         SequenceFlow newSequenceFlow = new SequenceFlow();
         newSequenceFlow.setId("newSequenceFlowId");
-        newSequenceFlow.setSourceFlowElement(flowNode);
+//        newSequenceFlow.setSourceFlowElement(flowNode);
         newSequenceFlow.setTargetFlowElement(myFlowNode);
         newSequenceFlowList.add(newSequenceFlow);
         flowNode.setOutgoingFlows(newSequenceFlowList);
 
-        Authentication.setAuthenticatedUserId("loginUser.getUsername()");
         taskService.addComment(task.getId(), task.getProcessInstanceId(), "撤回");
+
 
         Map<String, Object> currentVariables = new HashMap<>(1);
         currentVariables.put("applier", "loginUser.getUsername()");
@@ -125,8 +128,35 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     }
 
     @Override
-    public void jump(String businessKey, String target) {
+    public void jump(String businessKey, String targetTaskId) {
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
 
+        HisActivity targetActivity = hisActivityDao.selectByTaskId(targetTaskId);
+
+        //查询所有在途任务
+        List<Task> tasks = taskService.createTaskQuery().processInstanceBusinessKey(businessKey).list();
+
+        //查询bpmn定义
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
+        //查询跳转目标
+        FlowNode targetNode = (FlowNode) bpmnModel.getFlowElement(targetActivity.getActId());
+
+        for (Task task : tasks) {
+            //查询当前任务节点定义
+            FlowNode sourceNode = (FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey());
+            //记录原来跳转方向
+            List<SequenceFlow> sourceOutgoingFlows = sourceNode.getOutgoingFlows();
+            //设置跳转新方向
+            SequenceFlow sequenceFlow = new SequenceFlow();
+            sequenceFlow.setId(UUID.randomUUID().toString());
+            sequenceFlow.setSourceFlowElement(sourceNode);
+            sequenceFlow.setTargetFlowElement(targetNode);
+            sourceNode.setOutgoingFlows(Collections.singletonList(sequenceFlow));
+            //提交任务
+            taskService.complete(task.getId());
+            //还原当前任务节点跳转方向
+            sourceNode.setOutgoingFlows(sourceOutgoingFlows);
+        }
     }
 
     @Override

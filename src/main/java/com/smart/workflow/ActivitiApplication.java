@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Lazy;
  */
 @SpringBootApplication
 @EnableFeignClients
-@MapperScan(basePackages = "com.activiti.*.mapper")
+@MapperScan(basePackages = "com.smart.workflow.mapper")
 public class ActivitiApplication {
     public static void main(String[] args) {
         SpringApplication.run(ActivitiApplication.class);
