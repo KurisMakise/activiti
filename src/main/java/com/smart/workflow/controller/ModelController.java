@@ -7,6 +7,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiSort;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.FlowElement;
+import org.activiti.bpmn.model.Process;
+import org.activiti.bpmn.model.ServiceTask;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
@@ -63,12 +66,23 @@ public class ModelController {
         Deployment deployment = null;
         try {
             byte[] sourceBytes = repositoryService.getModelEditorSource(modelId);
+
             JsonNode editorNode = new ObjectMapper().readTree(sourceBytes);
             BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(editorNode);
 
+            //去除implementationType 使用bean
+            List<Process> processes = bpmnModel.getProcesses();
+            for (Process process : processes) {
+                for (FlowElement flowElement : process.getFlowElements()) {
+                    if (flowElement instanceof ServiceTask) {
+                        ((ServiceTask) flowElement).setImplementationType(null);
+                    }
+                }
+            }
+
             DeploymentBuilder deploymentBuilder = repositoryService.createDeployment()
-                    .name("手动部署")
                     .enableDuplicateFiltering()
+                    .name(processName)
                     .addBpmnModel(processName.concat(".bpmn20.xml"), bpmnModel);
             deployment = deploymentBuilder.deploy();
         } catch (Exception e) {

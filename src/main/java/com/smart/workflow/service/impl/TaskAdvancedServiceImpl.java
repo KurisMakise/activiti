@@ -18,7 +18,6 @@ import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,7 +51,6 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     private ProcessRuntime processRuntime;
 
     @Override
-
     public void revoke(String businessKey) throws Exception {
         Task task = taskService.createTaskQuery().processInstanceBusinessKey(businessKey).singleResult();
         if (task == null) {

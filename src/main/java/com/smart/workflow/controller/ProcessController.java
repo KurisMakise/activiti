@@ -23,7 +23,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("process")
-@Api(tags = "模型实例控制")
+@Api(tags = "实例控制")
 @ApiSort(value = 3)
 public class ProcessController {
 

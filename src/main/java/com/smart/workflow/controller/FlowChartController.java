@@ -2,13 +2,13 @@ package com.smart.workflow.controller;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiSort;
-import org.activiti.api.process.model.ProcessInstance;
 import org.activiti.api.process.runtime.ProcessRuntime;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
+import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.image.ProcessDiagramGenerator;
 import org.activiti.image.impl.DefaultProcessDiagramGenerator;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -66,8 +67,8 @@ public class FlowChartController {
     public void image(HttpServletResponse response, @PathVariable String processInstanceId) throws IOException {
         InputStream svgStream = getDiagram(processInstanceId);
 
-        TranscoderInput input = new TranscoderInput(svgStream);
         PNGTranscoder transcoder = new PNGTranscoder();
+        TranscoderInput input = new TranscoderInput(svgStream);
         TranscoderOutput output = new TranscoderOutput(response.getOutputStream());
         try {
             transcoder.transcode(input, output);
@@ -78,26 +79,13 @@ public class FlowChartController {
     }
 
     public InputStream getDiagram(String processInstanceId) {
-        ProcessInstance processInstance = processRuntime.processInstance(processInstanceId);
-        String processDefinitionId;
-        if (processInstance == null) {
-            //查询已经结束的流程实例
-            HistoricProcessInstance processInstanceHistory =
-                    historyService.createHistoricProcessInstanceQuery()
-                            .processInstanceId(processInstanceId).singleResult();
-            if (processInstanceHistory == null) {
-                return null;
-            } else {
-                processDefinitionId = processInstanceHistory.getProcessDefinitionId();
-            }
-        } else {
-            processDefinitionId = processInstance.getProcessDefinitionId();
-        }
+        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(historicProcessInstance.getProcessDefinitionId());
 
-        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
+        List<HistoricActivityInstance> list = historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstanceId).unfinished().list();
+        List<String> collect = list.stream().map(HistoricActivityInstance::getActivityId).collect(Collectors.toList());
 
-        List<String> activeActivityIds = runtimeService.getActiveActivityIds(processInstance.getId());
-        return processDiagramGenerator.generateDiagram(bpmnModel, activeActivityIds, new ArrayList<String>(0), "宋体", "宋体", "宋体");
+        return processDiagramGenerator.generateDiagram(bpmnModel, collect, new ArrayList<>(0), "宋体", "宋体", "宋体");
     }
 
 }

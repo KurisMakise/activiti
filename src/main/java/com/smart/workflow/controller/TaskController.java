@@ -102,7 +102,6 @@ public class TaskController {
     })
     public void complete(@PathVariable String taskId, Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
-
         taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).withVariables(variables).build());
     }
 

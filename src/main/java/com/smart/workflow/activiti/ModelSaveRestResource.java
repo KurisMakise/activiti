@@ -8,6 +8,7 @@ import org.activiti.engine.repository.Model;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 public class ModelSaveRestResource   {
@@ -43,15 +46,15 @@ public class ModelSaveRestResource   {
             model.setMetaInfo(modelJson.toString());
             model.setName(name);
             this.repositoryService.saveModel(model);
-            this.repositoryService.addModelEditorSource(model.getId(), json_xml.getBytes("utf-8"));
-            InputStream svgStream = new ByteArrayInputStream(svg_xml.getBytes("utf-8"));
-            TranscoderInput input = new TranscoderInput(svgStream);
+            this.repositoryService.addModelEditorSource(model.getId(), json_xml.getBytes(StandardCharsets.UTF_8));
+
             PNGTranscoder transcoder = new PNGTranscoder();
+            TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svg_xml.getBytes(StandardCharsets.UTF_8)));
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            TranscoderOutput output = new TranscoderOutput(outStream);
-            transcoder.transcode(input, output);
-            byte[] result = outStream.toByteArray();
-            this.repositoryService.addModelEditorSourceExtra(model.getId(), result);
+
+            transcoder.transcode(input, new TranscoderOutput(outStream));
+
+            this.repositoryService.addModelEditorSourceExtra(model.getId(), outStream.toByteArray());
             outStream.close();
         } catch (Exception e) {
             LOGGER.error("Error saving model", e);

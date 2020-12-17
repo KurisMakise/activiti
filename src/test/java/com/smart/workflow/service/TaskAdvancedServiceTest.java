@@ -1,19 +1,26 @@
 package com.smart.workflow.service;
 
-import com.smart.workflow.bean.ProcessDefinitionVo;
+import com.smart.workflow.config.context.SpringContextHolder;
 import com.smart.workflow.config.security.SecurityUtil;
 import com.smart.workflow.controller.DeployController;
+import com.smart.workflow.controller.ModelController;
 import com.smart.workflow.controller.ProcessController;
 import com.smart.workflow.controller.TaskController;
 import org.activiti.api.process.model.ProcessInstance;
 import org.activiti.api.task.model.Task;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.TaskService;
+import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.repository.Model;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -35,10 +42,17 @@ class TaskAdvancedServiceTest {
     private TaskController taskController;
 
     @Autowired
+    private ModelController modelController;
+
+    @Autowired
     private DeployController deployController;
 
     @Autowired
     private SecurityUtil securityUtil;
+
+    @Autowired
+    private RepositoryService repositoryService;
+
 
     @Test
     void revoke() {
@@ -56,26 +70,42 @@ class TaskAdvancedServiceTest {
 
     @Test
     void replace() {
-        //查询流程定义
-        List<ProcessDefinitionVo> processDefinitionVos = deployController.definitionList();
+        Model model = repositoryService.createModelQuery().modelName("审批流程").singleResult();
+
+        Deployment processUnitTest = modelController.deploy(model.getId(), "processUnitTest");
+
         //启动流程
         String businessKey = UUID.randomUUID().toString();
-        ProcessInstance test = processController.start(processDefinitionVos.get(1).getId(), "test", businessKey, null);
-
+        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(processUnitTest.getId()).singleResult();
+        ProcessInstance test = processController.start(processDefinition.getId(), "test", businessKey, null);
         try {
-            securityUtil.logInAs("admin");
+            securityUtil.logInAs("supervisor");
             Task task = taskController.getTaskByProcessInstanceId(test.getId());
-
             taskController.claim(task.getId());
-            securityUtil.logInAs("user");
-            taskAdvancedService.transfer(task.getId(), "user");
-            taskController.complete(task.getId(), null);
-            taskAdvancedService.revoke(businessKey);
+            Map<String, Object> variables = new HashMap<>(2);
+            variables.put("approval", true);
+            variables.put("day", 8);
+            taskController.complete(task.getId(), variables);
+
+            org.activiti.engine.task.Task task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("manager").singleResult();
+            securityUtil.logInAs("manager");
+            taskController.claim(task1.getId());
+            taskController.complete(task1.getId(), variables);
+
+            task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("generalManager").singleResult();
+            securityUtil.logInAs("generalManager");
+            taskController.claim(task1.getId());
+            taskController.complete(task1.getId(), variables);
+
+//            taskAdvancedService.transfer(task.getId(), "user");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        //删除实例
         processController.delete(test.getId());
+        //删除发布流程
+        deployController.delete(processUnitTest.getId());
     }
 
 

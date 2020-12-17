@@ -32,6 +32,9 @@ public class UserDetailsService {
                 {"user", "password", "ROLE_ACTIVITI_USER","GROUP_start","GROUP_admin"},
                 {"admin", "password", "ROLE_ACTIVITI_ADMIN","ROLE_ADMIN","GROUP_ADMIN","GROUP_start"},
                 {"yga", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_admin"},
+                {"supervisor", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_supervisor"},
+                {"manager", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_manager"},
+                {"generalManager", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_generalManager"},
         };
 
         for (String[] user : usersGroupsAndRoles) {
