@@ -1,6 +1,9 @@
 package com.smart.workflow.mapper;
 
 import com.smart.workflow.po.HisActivity;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface HisActivityDao {
 
@@ -8,4 +11,5 @@ public interface HisActivityDao {
 
     HisActivity selectByTaskId(String taskId);
 
+    List<Object> origSelect(@Param("sql") String sql);
 }

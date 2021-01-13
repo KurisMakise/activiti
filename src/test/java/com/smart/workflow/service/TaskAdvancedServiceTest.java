@@ -9,6 +9,7 @@ import com.smart.workflow.controller.TaskController;
 import org.activiti.api.process.model.ProcessInstance;
 import org.activiti.api.task.model.Task;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.Model;
@@ -20,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -80,19 +82,28 @@ class TaskAdvancedServiceTest {
         ProcessInstance test = processController.start(processDefinition.getId(), "test", businessKey, null);
         try {
             securityUtil.logInAs("supervisor");
-            Task task = taskController.getTaskByProcessInstanceId(test.getId());
+            Task task = taskController.getTaskByProcessInstanceId(test.getId()).get(0);
+            String targetId = task.getId();
+
             taskController.claim(task.getId());
             Map<String, Object> variables = new HashMap<>(2);
             variables.put("approval", true);
             variables.put("day", 8);
             taskController.complete(task.getId(), variables);
 
+
+            TaskService taskService = SpringContextHolder.getBean(TaskService.class);
+            List<org.activiti.engine.task.Task> list = taskService.createTaskQuery().processInstanceBusinessKey(businessKey).list();
+            for (org.activiti.engine.task.Task task1 : list) {
+                taskService.complete(task1.getId());
+            }
+            task = taskController.getTaskByProcessInstanceId(test.getId()).get(0);
+            taskAdvancedService.jump(targetId, task.getId());
             org.activiti.engine.task.Task task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("manager").singleResult();
             securityUtil.logInAs("manager");
             taskController.claim(task1.getId());
             taskController.complete(task1.getId(), variables);
 
-            taskAdvancedService.revoke(businessKey);
 
             task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("manager").singleResult();
             securityUtil.logInAs("manager");

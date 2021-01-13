@@ -5,8 +5,7 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * act_hi_actinst
- * @author
+ *
  */
 @Data
 public class HisActivity implements Serializable {

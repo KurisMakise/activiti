@@ -56,8 +56,8 @@ public class TaskController {
 
     @GetMapping("processInstanceId")
     @ApiOperation("通过实例id查询任务")
-    public Task getTaskByProcessInstanceId(String processInstanceId) {
-        return apiTaskConverter.from(taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult());
+    public List<Task> getTaskByProcessInstanceId(String processInstanceId) {
+        return apiTaskConverter.from(taskService.createTaskQuery().processInstanceId(processInstanceId).list());
 
     }
 
