@@ -67,7 +67,7 @@ class TaskAdvancedServiceTest {
 
     @Test
     void jump() {
-        taskAdvancedService.jump("", "");
+        taskAdvancedService.jumpBackward("", "");
     }
 
     @Test
@@ -98,7 +98,7 @@ class TaskAdvancedServiceTest {
                 taskService.complete(task1.getId());
             }
             task = taskController.getTaskByProcessInstanceId(test.getId()).get(0);
-            taskAdvancedService.jump(targetId, task.getId());
+            taskAdvancedService.jumpBackward(targetId, task.getId());
             org.activiti.engine.task.Task task1 = SpringContextHolder.getBean(TaskService.class).createTaskQuery().taskCandidateGroup("manager").singleResult();
             securityUtil.logInAs("manager");
             taskController.claim(task1.getId());

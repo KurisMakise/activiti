@@ -1,9 +1,16 @@
 package com.smart.workflow.service.impl;
 
 import org.activiti.bpmn.model.*;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.TaskService;
+import org.activiti.engine.task.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 流程元素关联关系
@@ -14,6 +21,32 @@ import java.util.*;
  */
 @Component
 public class FlowElementRelation {
+    @Autowired
+    private RepositoryService repositoryService;
+
+    @Autowired
+    private TaskService taskService;
+
+    private enum QueryType {
+        /**
+         * 查询子节点
+         */
+        CHILD(0),
+        /**
+         * 查询父节点
+         */
+        PARENT(1);
+
+        private final int type;
+
+        QueryType(int type) {
+            this.type = type;
+        }
+
+        public int getType() {
+            return type;
+        }
+    }
 
     /**
      * 获取流程图里的网关对象
@@ -32,48 +65,117 @@ public class FlowElementRelation {
     }
 
     /**
-     * 查询一个节点下的所有子节点
+     * 查询任务的所有子节点
+     *
+     * @param taskId 任务id
+     * @return 子节点集合
+     */
+
+    public Map<String, FlowNode> getChildNode(String taskId) {
+        Task sourceTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
+        FlowElement flowElement = bpmnModel.getFlowElement(sourceTask.getTaskDefinitionKey());
+
+        return getChildNode(bpmnModel, flowElement.getId());
+    }
+
+    /**
+     * 查询任务所有父节点
+     *
+     * @param taskId 任务id
+     * @return 子节点集合
+     */
+
+    public Map<String, FlowNode> getParentNode(String taskId) {
+        Task sourceTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
+        FlowElement flowElement = bpmnModel.getFlowElement(sourceTask.getTaskDefinitionKey());
+
+        return getParentNode(bpmnModel, flowElement.getId());
+    }
+
+
+    /**
+     * element节点的所有子节点
      *
      * @param bpmnModel 流程定义
      * @param elementId 节点id
-     * @return 子节点名称
+     * @return 子节点id
      */
-    public Set<String> getChildElementName(BpmnModel bpmnModel, String elementId) {
-        Set<String> flowElementIdSet = new HashSet<>();
+    public Map<String, FlowNode> getChildNode(BpmnModel bpmnModel, String elementId) {
+        Map<String, FlowNode> flowNodeMap = new LinkedHashMap<>(20);
 
-        Map<String, FlowElement> flowElementMap = getFlowElementMap(bpmnModel);
-        iterElement(flowElementIdSet, flowElementMap, elementId);
+        iterElement(flowNodeMap, getFlowElementMap(bpmnModel), elementId, QueryType.CHILD);
 
-        return flowElementIdSet;
+        return flowNodeMap;
+    }
+
+
+    /**
+     * element节点下的所有父节点
+     *
+     * @param bpmnModel 流程定义
+     * @param elementId 节点id
+     * @return 子节点id
+     */
+    public Map<String, FlowNode> getParentNode(BpmnModel bpmnModel, String elementId) {
+        Map<String, FlowNode> flowNodeMap = new LinkedHashMap<>(20);
+
+        iterElement(flowNodeMap, getFlowElementMap(bpmnModel), elementId, QueryType.PARENT);
+
+        return flowNodeMap;
     }
 
     /**
      * 递归查询元素
      *
-     * @param flowElementIdSet 所有子节点id集合
-     * @param flowElementMap   流程定义集合
-     * @param elementId        元素id
+     * @param resultMap      返回结果
+     * @param flowElementMap 流程定义集合
+     * @param flowElementId  元素id
+     * @param queryType      {@link QueryType}
      */
-    private void iterElement(Set<String> flowElementIdSet, Map<String, FlowElement> flowElementMap, String elementId) {
-        FlowElement flowElement = flowElementMap.get(elementId);
+    private void iterElement(Map<String, FlowNode> resultMap, Map<String, FlowElement> flowElementMap, String flowElementId, QueryType queryType) {
+        FlowElement flowElement = flowElementMap.get(flowElementId);
 
         if (flowElement == null) {
             return;
         }
 
         if (flowElement instanceof FlowNode) {
-            List<SequenceFlow> outgoingFlows = ((FlowNode) flowElement).getOutgoingFlows();
-            for (SequenceFlow outFlow : outgoingFlows) {
-                String outFlowElementId = outFlow.getTargetRef();
+            List<SequenceFlow> sequenceFlowList;
+
+            //判断查询父节点还是子节点
+            if (queryType == QueryType.PARENT) {
+                sequenceFlowList = ((FlowNode) flowElement).getIncomingFlows();
+            } else {
+                sequenceFlowList = ((FlowNode) flowElement).getOutgoingFlows();
+            }
+
+            for (SequenceFlow sequenceFlow : sequenceFlowList) {
+                String tmpElementId;
+                FlowElement tmpElement;
+
+                //查询父节点，获取从哪来
+                if (queryType == QueryType.PARENT) {
+                    tmpElementId = sequenceFlow.getSourceRef();
+                    tmpElement = sequenceFlow.getSourceFlowElement();
+                } else {
+                    tmpElementId = sequenceFlow.getTargetRef();
+                    tmpElement = sequenceFlow.getTargetFlowElement();
+                }
                 //解决死循环
-                if (flowElementIdSet.contains(outFlowElementId)) {
+                if (resultMap.containsKey(tmpElementId)) {
                     continue;
                 }
-                flowElementIdSet.add(outFlowElementId);
-                iterElement(flowElementIdSet, flowElementMap, outFlowElementId);
+                //只保存用户操作节点
+                if (tmpElement instanceof UserTask) {
+                    resultMap.put(tmpElementId, (UserTask) tmpElement);
+                }
+                iterElement(resultMap, flowElementMap, tmpElementId, queryType);
             }
         }
     }
+
 
     private Map<String, FlowElement> getFlowElementMap(BpmnModel bpmnModel) {
         return bpmnModel.getProcesses().get(0).getFlowElementMap();

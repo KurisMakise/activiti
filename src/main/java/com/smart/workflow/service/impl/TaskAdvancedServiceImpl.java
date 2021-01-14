@@ -1,7 +1,6 @@
 package com.smart.workflow.service.impl;
 
 import com.smart.workflow.mapper.HisActivityDao;
-import com.smart.workflow.po.HisActivity;
 import com.smart.workflow.service.TaskAdvancedService;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.process.runtime.ProcessRuntime;
@@ -11,11 +10,6 @@ import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.history.HistoricActivityInstance;
-import org.activiti.engine.history.HistoricTaskInstance;
-import org.activiti.engine.impl.identity.Authentication;
-import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
-import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,99 +49,65 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
 
     @Override
     public void revoke(String businessKey) throws Exception {
-        Task task = taskService.createTaskQuery().processInstanceBusinessKey(businessKey).singleResult();
-        if (task == null) {
-            throw new Exception("流程未启动或已执行完成，无法撤回");
-        }
 
-        List<HistoricTaskInstance> htiList = historyService.createHistoricTaskInstanceQuery()
-                .processInstanceBusinessKey(businessKey)
-                .orderByTaskCreateTime()
-                .asc()
-                .list();
-        String myTaskId = null;
-        HistoricTaskInstance myTask = null;
-        for (HistoricTaskInstance hti : htiList) {
-            if (Authentication.getAuthenticatedUserId().equals(hti.getAssignee())) {
-                myTaskId = hti.getId();
-                myTask = hti;
-                break;
-            }
-        }
-        if (null == myTaskId) {
-            throw new Exception("该任务非当前用户提交，无法撤回");
-        }
+    }
 
-        String processDefinitionId = myTask.getProcessDefinitionId();
-        ProcessDefinitionEntity processDefinitionEntity = (ProcessDefinitionEntity) repositoryService.createProcessDefinitionQuery().processDefinitionId(processDefinitionId).singleResult();
-        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
-
-        //变量
-//		Map<String, VariableInstance> variables = runtimeService.getVariableInstances(currentTask.getExecutionId());
-        String myActivityId = null;
-        List<HistoricActivityInstance> haiList = historyService.createHistoricActivityInstanceQuery()
-                .executionId(myTask.getExecutionId()).finished().list();
-        for (HistoricActivityInstance hai : haiList) {
-            if (myTaskId.equals(hai.getTaskId())) {
-                myActivityId = hai.getActivityId();
-                break;
-            }
-        }
-        FlowNode myFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(myActivityId);
-
-
-        Execution execution = runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
-        String activityId = execution.getActivityId();
-        log.warn("------->> activityId:" + activityId);
-        FlowNode flowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(activityId);
-
-        //记录原活动方向
-        List<SequenceFlow> oriSequenceFlows = new ArrayList<SequenceFlow>();
-        oriSequenceFlows.addAll(flowNode.getOutgoingFlows());
-
-        //清理活动方向
-        flowNode.getOutgoingFlows().clear();
-        //建立新方向
-        List<SequenceFlow> newSequenceFlowList = new ArrayList<SequenceFlow>();
-        SequenceFlow newSequenceFlow = new SequenceFlow();
-        newSequenceFlow.setId("newSequenceFlowId");
-//        newSequenceFlow.setSourceFlowElement(flowNode);
-        newSequenceFlow.setTargetFlowElement(myFlowNode);
-        newSequenceFlowList.add(newSequenceFlow);
-        flowNode.setOutgoingFlows(newSequenceFlowList);
-
-        taskService.addComment(task.getId(), task.getProcessInstanceId(), "撤回");
-
-
-        Map<String, Object> currentVariables = new HashMap<>(1);
-        currentVariables.put("applier", "loginUser.getUsername()");
-        //完成任务
-        taskService.complete(task.getId(), currentVariables);
-        //恢复原方向
-        flowNode.setOutgoingFlows(oriSequenceFlows);
+    private BpmnModel getBpmnByTask(String taskId) {
+        Task sourceTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        return repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
     }
 
     @Override
-    public void jump(String sourceTaskId, String targetTaskId) {
+    public void jumpBackward(String sourceTaskId, String targetTaskId) {
+        String targetActId = hisActivityDao.selectByTaskId(targetTaskId).getActId();
+        jump(sourceTaskId, targetActId, flowElementRelation.getChildNode(getBpmnByTask(sourceTaskId), targetActId).keySet());
+    }
+
+    @Override
+    public void jumpForward(String sourceTaskId, String targetActId) {
+        jump(sourceTaskId, targetActId, flowElementRelation.getParentNode(getBpmnByTask(sourceTaskId), targetActId).keySet());
+    }
+
+    @Override
+    public Collection<FlowNode> getChildNode(String taskId) {
+        return flowElementRelation.getChildNode(taskId).values();
+    }
+
+    @Override
+    public Collection<FlowNode> getParentNode(String taskId) {
+        return flowElementRelation.getParentNode(taskId).values();
+    }
+
+    /**
+     * 任意跳转
+     *
+     * @param sourceTaskId 当前任务id
+     * @param targetActId  目标
+     * @param elementIdSet 跳转到目标节点所经过的节点集合，如果当前任务包含则需要跳转所有节点
+     */
+
+    private void jump(String sourceTaskId, String targetActId, Set<String> elementIdSet) {
+        //查询任务
         Task sourceTask = taskService.createTaskQuery().taskId(sourceTaskId).singleResult();
-        HisActivity targetActivity = hisActivityDao.selectByTaskId(targetTaskId);
-
-        //查询所有在途任务
-        List<Task> tasks = taskService.createTaskQuery().processInstanceId(sourceTask.getProcessInstanceId()).list();
-
         //查询bpmn定义
         BpmnModel bpmnModel = repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
-        Set<String> childElement = flowElementRelation.getChildElementName(bpmnModel, targetActivity.getActId());
+
+        jump(bpmnModel, sourceTask, targetActId, elementIdSet);
+    }
+
+    private void jump(BpmnModel bpmnModel, Task sourceTask, String targetActId, Set<String> elementIdSet) {
         //原节点
         FlowNode sourceNode = (FlowNode) bpmnModel.getFlowElement(sourceTask.getTaskDefinitionKey());
         //目标节点
-        FlowNode targetNode = (FlowNode) bpmnModel.getFlowElement(targetActivity.getActId());
+        FlowNode targetNode = (FlowNode) bpmnModel.getFlowElement(targetActId);
 
+        //查询所有在途任务
+        List<Task> tasks = taskService.createTaskQuery().processInstanceId(sourceTask.getProcessInstanceId()).list();
         //只有一个任务直接退回
         if (tasks.size() == 1) {
-            jumpToTarget(sourceTaskId, sourceNode, targetNode);
-
+            jumpToTarget(sourceTask.getId(), sourceNode, targetNode);
         } else if (tasks.size() > 1) {
+
             //如果存在多个在途任务，回退和当前任务同级的其他任务
             ParallelGateway parallelGateway = flowElementRelation.getParallelGateway(bpmnModel);
 
@@ -162,7 +122,7 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
                 //查询所有需要跳转到网关的节点
                 List<FlowNode> sourceFlowNodeList = new ArrayList<>();
                 for (Task task : tasks) {
-                    if (childElement.contains(task.getTaskDefinitionKey())) {
+                    if (elementIdSet.contains(task.getTaskDefinitionKey())) {
                         sourceFlowNodeList.add((FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()));
                     }
                 }
@@ -171,7 +131,7 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
 
                 //提交跳转
                 for (Task task : tasks) {
-                    if (childElement.contains(task.getTaskDefinitionKey())) {
+                    if (elementIdSet.contains(task.getTaskDefinitionKey())) {
                         jumpToTarget(task.getId(), (FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()), parallelGateway);
                     }
                 }
@@ -192,10 +152,12 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     private void jumpToTarget(String sourceTaskId, FlowNode sourceNode, FlowNode targetNode) {
         //记录原跳转方向
         List<SequenceFlow> sourceOutgoingFlows = sourceNode.getOutgoingFlows();
+
         //设置新跳转方向
         changeOutgoing(sourceNode, targetNode);
         //提交任务
         taskService.complete(sourceTaskId);
+
         //还原 源跳转方向
         sourceNode.setOutgoingFlows(sourceOutgoingFlows);
     }
