@@ -1,10 +1,10 @@
 package com.smart.workflow.controller;
 
 import com.smart.workflow.service.TaskAdvancedService;
+import com.smart.workflow.vo.FlowNodeVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.activiti.bpmn.model.FlowNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +40,7 @@ public class TaskAdvancedController {
     @GetMapping("{taskId}/childNode")
     @ApiOperation("查询子节点列表")
     @ResponseBody
-    public Collection<FlowNode> getChildList(@PathVariable String taskId) {
+    public Collection<FlowNodeVo> getChildList(@PathVariable String taskId) {
         return taskAdvancedService.getChildNode(taskId);
     }
 
@@ -48,7 +48,7 @@ public class TaskAdvancedController {
     @GetMapping("{taskId}/parentNode")
     @ApiOperation("查询父节点列表")
     @ResponseBody
-    public Collection<FlowNode> getParentList(@PathVariable String taskId) {
+    public Collection<FlowNodeVo> getParentList(@PathVariable String taskId) {
         return taskAdvancedService.getParentNode(taskId);
     }
 

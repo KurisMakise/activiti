@@ -2,6 +2,7 @@ package com.smart.workflow.service.impl;
 
 import com.smart.workflow.mapper.HisActivityDao;
 import com.smart.workflow.service.TaskAdvancedService;
+import com.smart.workflow.vo.FlowNodeVo;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.process.runtime.ProcessRuntime;
 import org.activiti.api.task.runtime.TaskRuntime;
@@ -11,10 +12,12 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.Task;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author kurisu makise
@@ -69,13 +72,21 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     }
 
     @Override
-    public Collection<FlowNode> getChildNode(String taskId) {
-        return flowElementRelation.getChildNode(taskId).values();
+    public Collection<FlowNodeVo> getChildNode(String taskId) {
+        return flowElementRelation.getChildNode(taskId).values()
+                .stream().map(this::convert).collect(Collectors.toList());
     }
 
     @Override
-    public Collection<FlowNode> getParentNode(String taskId) {
-        return flowElementRelation.getParentNode(taskId).values();
+    public Collection<FlowNodeVo> getParentNode(String taskId) {
+        return flowElementRelation.getParentNode(taskId).values().
+                stream().map(this::convert).collect(Collectors.toList());
+    }
+
+    private FlowNodeVo convert(FlowNode flowNode) {
+        FlowNodeVo flowNodeVo = new FlowNodeVo();
+        BeanUtils.copyProperties(flowNode, flowNodeVo);
+        return flowNodeVo;
     }
 
     /**
@@ -107,7 +118,6 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
         if (tasks.size() == 1) {
             jumpToTarget(sourceTask.getId(), sourceNode, targetNode);
         } else if (tasks.size() > 1) {
-
             //如果存在多个在途任务，回退和当前任务同级的其他任务
             ParallelGateway parallelGateway = flowElementRelation.getParallelGateway(bpmnModel);
 

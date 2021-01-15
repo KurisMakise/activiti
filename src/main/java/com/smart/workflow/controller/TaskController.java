@@ -1,6 +1,7 @@
 package com.smart.workflow.controller;
 
 import com.smart.workflow.config.security.SecurityUtil;
+import com.smart.workflow.vo.PageVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.runtime.shared.query.Page;
@@ -72,8 +73,9 @@ public class TaskController {
 
     @GetMapping("all")
     @ApiOperation("查询所有任务")
-    public List<Task> taskAll() {
-        return apiTaskConverter.from(taskService.createTaskQuery().list());
+    public PageVo taskAll() {
+        List<Task> taskList = apiTaskConverter.from(taskService.createTaskQuery().list());
+        return new PageVo(taskList, taskList.size());
     }
 
     @GetMapping
@@ -84,6 +86,7 @@ public class TaskController {
 
     @GetMapping("{taskId}")
     public Task task(@PathVariable String taskId) {
+
         return taskRuntime.task(taskId);
     }
 

@@ -1,8 +1,9 @@
 package com.smart.workflow.service;
 
-import org.activiti.bpmn.model.FlowNode;
+import com.smart.workflow.vo.FlowNodeVo;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 任务特殊处理功能
@@ -57,7 +58,7 @@ public interface TaskAdvancedService {
      * @param taskId 任务id
      * @return 子节点列表
      */
-    Collection<FlowNode> getChildNode(String taskId);
+    Collection<FlowNodeVo> getChildNode(String taskId);
 
 
     /**
@@ -66,5 +67,5 @@ public interface TaskAdvancedService {
      * @param taskId 任务id
      * @return 子节点列表
      */
-    Collection<FlowNode> getParentNode(String taskId);
+    Collection<FlowNodeVo> getParentNode(String taskId);
 }
