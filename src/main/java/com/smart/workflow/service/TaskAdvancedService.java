@@ -1,9 +1,8 @@
 package com.smart.workflow.service;
 
-import com.smart.workflow.vo.FlowNodeVo;
+import com.smart.workflow.vo.OptionVo;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 任务特殊处理功能
@@ -24,9 +23,9 @@ public interface TaskAdvancedService {
      * 任意跳转
      *
      * @param sourceTaskId 源任务id
-     * @param targetTaskId 历史任务id
+     * @param targetActId  目标节点id
      */
-    void jumpBackward(String sourceTaskId, String targetTaskId);
+    void jumpBackward(String sourceTaskId, String targetActId);
 
     /**
      * 任意跳转
@@ -58,7 +57,7 @@ public interface TaskAdvancedService {
      * @param taskId 任务id
      * @return 子节点列表
      */
-    Collection<FlowNodeVo> getChildNode(String taskId);
+    Collection<OptionVo> getChildNode(String taskId);
 
 
     /**
@@ -67,5 +66,5 @@ public interface TaskAdvancedService {
      * @param taskId 任务id
      * @return 子节点列表
      */
-    Collection<FlowNodeVo> getParentNode(String taskId);
+    Collection<OptionVo> getParentNode(String taskId);
 }

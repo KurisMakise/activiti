@@ -1,7 +1,7 @@
 package com.smart.workflow.controller;
 
 import com.smart.workflow.service.TaskAdvancedService;
-import com.smart.workflow.vo.FlowNodeVo;
+import com.smart.workflow.vo.OptionVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class TaskAdvancedController {
     @GetMapping("{taskId}/childNode")
     @ApiOperation("查询子节点列表")
     @ResponseBody
-    public Collection<FlowNodeVo> getChildList(@PathVariable String taskId) {
+    public Collection<OptionVo> getChildList(@PathVariable String taskId) {
         return taskAdvancedService.getChildNode(taskId);
     }
 
@@ -48,7 +48,7 @@ public class TaskAdvancedController {
     @GetMapping("{taskId}/parentNode")
     @ApiOperation("查询父节点列表")
     @ResponseBody
-    public Collection<FlowNodeVo> getParentList(@PathVariable String taskId) {
+    public Collection<OptionVo> getParentList(@PathVariable String taskId) {
         return taskAdvancedService.getParentNode(taskId);
     }
 
@@ -57,13 +57,13 @@ public class TaskAdvancedController {
      * 任意退回
      *
      * @param sourceTaskId 源任务id
-     * @param targetTaskId 历史任务id
+     * @param targetActId  目标节点id
      */
     @PostMapping("jumpBackward")
     @ApiOperation("任意退回")
     @ResponseBody
-    public void jumpBackward(String sourceTaskId, String targetTaskId) {
-        taskAdvancedService.jumpBackward(sourceTaskId, targetTaskId);
+    public void jumpBackward(String sourceTaskId, String targetActId) {
+        taskAdvancedService.jumpBackward(sourceTaskId, targetActId);
     }
 
     /**
