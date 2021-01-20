@@ -1,5 +1,6 @@
 package com.smart.workflow.controller;
 
+import com.smart.workflow.vo.PageVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiSort;
@@ -30,16 +31,12 @@ public class ProcessController {
     @Autowired
     private ProcessRuntime processRuntime;
 
-    @GetMapping
-    @ApiOperation("流程定义分页")
-    public Page<ProcessDefinition> processes(int start, int end) {
-        return processRuntime.processDefinitions(Pageable.of(start, end));
-    }
 
     @GetMapping("instance")
     @ApiOperation("流程实例分页")
-    public Page<ProcessInstance> instance(int start, int end) {
-        return processRuntime.processInstances(Pageable.of(start, end));
+    public PageVo instance(PageVo pageVo) {
+        Page<ProcessInstance> pageResult = processRuntime.processInstances(Pageable.of(pageVo.getStart(), pageVo.getEnd()));
+        return pageVo.setData(pageResult.getContent(), pageResult.getTotalItems());
     }
 
     @GetMapping("{processDefinitionId}")
@@ -61,11 +58,23 @@ public class ProcessController {
 
     }
 
-    @PutMapping("{processInstanceId}/delete")
+    @DeleteMapping("{processInstanceId}")
     @ApiOperation("删除流程实例")
     public void delete(@PathVariable String processInstanceId) {
         processRuntime.delete(ProcessPayloadBuilder
                 .delete(processInstanceId));
+    }
+
+    @PostMapping("{processInstanceId}/suspend")
+    @ApiOperation("暂停实例")
+    public void suspend(@PathVariable String processInstanceId) {
+        processRuntime.suspend(ProcessPayloadBuilder.suspend(processInstanceId));
+    }
+
+    @PostMapping("{processInstanceId}/resume")
+    @ApiOperation("恢复实例")
+    public void resume(@PathVariable String processInstanceId) {
+        processRuntime.resume(ProcessPayloadBuilder.resume(processInstanceId));
     }
 
 }

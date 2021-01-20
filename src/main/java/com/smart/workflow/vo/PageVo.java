@@ -24,9 +24,22 @@ public class PageVo {
 
 
     public PageVo(List<?> data, long total) {
+        setData(data, total);
+    }
+
+    public PageVo setData(List<?> data, long total) {
         this.data = data;
         this.total = total;
         success = true;
+        return this;
+    }
+
+    public int getStart() {
+        return (current - 1) * pageSize;
+    }
+
+    public int getEnd() {
+        return current * pageSize;
     }
 
     /**

@@ -7,10 +7,7 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 流程元素关联关系
@@ -73,6 +70,10 @@ public class FlowElementRelation {
 
     public Map<String, FlowNode> getChildNode(String taskId) {
         Task sourceTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (sourceTask == null) {
+            return new HashMap<>(0);
+        }
+
         BpmnModel bpmnModel = repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
         FlowElement flowElement = bpmnModel.getFlowElement(sourceTask.getTaskDefinitionKey());
 
@@ -88,6 +89,9 @@ public class FlowElementRelation {
 
     public Map<String, FlowNode> getParentNode(String taskId) {
         Task sourceTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (sourceTask == null) {
+            return new HashMap<>(0);
+        }
         BpmnModel bpmnModel = repositoryService.getBpmnModel(sourceTask.getProcessDefinitionId());
         FlowElement flowElement = bpmnModel.getFlowElement(sourceTask.getTaskDefinitionKey());
 

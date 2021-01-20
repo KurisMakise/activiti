@@ -71,7 +71,7 @@ public class TaskController {
     @Autowired
     private APITaskConverter apiTaskConverter;
 
-    @GetMapping("all")
+    @GetMapping("list")
     @ApiOperation("查询所有任务")
     public PageVo taskAll() {
         List<Task> taskList = apiTaskConverter.from(taskService.createTaskQuery().list());
