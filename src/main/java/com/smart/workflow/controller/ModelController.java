@@ -32,7 +32,6 @@ import java.util.List;
 @RestController
 @Api(tags = "模型管理")
 @ApiSort(value = 1)
-
 @Slf4j
 public class ModelController {
 

@@ -1,5 +1,6 @@
 package com.smart.workflow.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.smart.workflow.vo.PageVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,9 +46,9 @@ public class ProcessController {
         return processRuntime.processDefinition(processDefinitionId);
     }
 
-    @PutMapping("start")
+    @PostMapping("start")
     @ApiOperation("启动流程")
-    public ProcessInstance start(String processDefinitionKey, String name, String businessKey, Map<String, Object> variables) {
+    public ProcessInstance start(String processDefinitionKey, String name, String businessKey, @RequestBody Map<String, Object> variables) {
         return processRuntime.start(ProcessPayloadBuilder.
                 start()
                 .withProcessDefinitionKey(processDefinitionKey)
@@ -55,7 +56,6 @@ public class ProcessController {
                 .withBusinessKey(businessKey)
                 .withVariables(variables)
                 .build());
-
     }
 
     @DeleteMapping("{processInstanceId}")

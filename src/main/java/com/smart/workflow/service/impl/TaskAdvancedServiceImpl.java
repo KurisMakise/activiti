@@ -3,7 +3,6 @@ package com.smart.workflow.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.smart.workflow.mapper.HisActivityDao;
 import com.smart.workflow.service.TaskAdvancedService;
-import com.smart.workflow.vo.FlowNodeVo;
 import com.smart.workflow.vo.OptionVo;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.process.runtime.ProcessRuntime;
@@ -13,11 +12,11 @@ import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.task.Task;
-import org.apache.zookeeper.Op;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,8 +53,24 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     private FlowElementRelation flowElementRelation;
 
     @Override
-    public void revoke(String businessKey) throws Exception {
+    @Transactional(rollbackFor = Exception.class)
+    public void revoke(String taskId) {
+        HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(historicTaskInstance.getProcessDefinitionId());
 
+        //查询下个节点
+        FlowNode flowNode = (FlowNode) bpmnModel.getFlowElement(historicTaskInstance.getTaskDefinitionKey());
+        List<SequenceFlow> outgoingFlows = flowNode.getOutgoingFlows();
+        //退回
+        for (SequenceFlow sequenceFlow : outgoingFlows) {
+            Task task = taskService.createTaskQuery()
+                    .processInstanceId(historicTaskInstance.getProcessInstanceId())
+                    .taskDefinitionKey(sequenceFlow.getTargetRef()).singleResult();
+            if (task != null) {
+                jumpBackward(task.getId(), historicTaskInstance.getTaskDefinitionKey());
+                break;
+            }
+        }
     }
 
     private BpmnModel getBpmnByTask(String taskId) {
@@ -64,11 +79,13 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void jumpBackward(String sourceTaskId, String targetActId) {
         jump(sourceTaskId, targetActId, flowElementRelation.getChildNode(getBpmnByTask(sourceTaskId), targetActId).keySet());
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void jumpForward(String sourceTaskId, String targetActId) {
         jump(sourceTaskId, targetActId, flowElementRelation.getParentNode(getBpmnByTask(sourceTaskId), targetActId).keySet());
     }
@@ -229,12 +246,4 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
     }
 
 
-    @Override
-    public void transfer(String taskId, String replaceUser) {
-        taskService.setAssignee(taskId, replaceUser);
-    }
-
-    @Override
-    public void finish(String businessKey) {
-    }
 }

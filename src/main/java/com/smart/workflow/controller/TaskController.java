@@ -2,6 +2,7 @@ package com.smart.workflow.controller;
 
 import com.smart.workflow.config.security.SecurityUtil;
 import com.smart.workflow.vo.PageVo;
+import com.smart.workflow.vo.TaskVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.runtime.shared.query.Page;
@@ -11,11 +12,13 @@ import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.runtime.TaskRuntime;
 import org.activiti.engine.TaskService;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 任务
@@ -75,7 +78,13 @@ public class TaskController {
     @ApiOperation("查询所有任务")
     public PageVo taskAll() {
         List<Task> taskList = apiTaskConverter.from(taskService.createTaskQuery().list());
-        return new PageVo(taskList, taskList.size());
+        List<TaskVo> data = taskList.stream().map(task -> {
+            TaskVo taskVo = new TaskVo();
+            BeanUtils.copyProperties(task, taskVo);
+            taskVo.setVariables(taskService.getVariables(task.getId()));
+            return taskVo;
+        }).collect(Collectors.toList());
+        return new PageVo(data, taskList.size());
     }
 
     @GetMapping
@@ -90,7 +99,7 @@ public class TaskController {
         return taskRuntime.task(taskId);
     }
 
-    @PutMapping("{taskId}/claim")
+    @PostMapping("{taskId}/claim")
     @ApiOperation("认领任务")
     public void claim(@PathVariable String taskId) {
         taskRuntime.claim(TaskPayloadBuilder.claim().withTaskId(taskId).build());
@@ -106,6 +115,18 @@ public class TaskController {
     public void complete(@PathVariable String taskId, Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
         taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).withVariables(variables).build());
+    }
+
+    @GetMapping("{taskId}/params")
+    @ApiOperation("任务参数")
+    public Map<String, Object> params(@PathVariable String taskId) {
+        return taskService.getVariables(taskId);
+    }
+
+    @PostMapping("{taskId}/assignee")
+    @ApiOperation("设置任务处理人")
+    public void setAssignee(@PathVariable String taskId, String userId) {
+        taskService.setAssignee(taskId, userId);
     }
 
 }

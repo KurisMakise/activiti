@@ -21,7 +21,6 @@ import java.util.Collection;
 @RequestMapping("task/advanced")
 @Slf4j
 @Api(tags = "任务扩展控制")
-
 public class TaskAdvancedController {
 
     @Autowired
@@ -30,16 +29,15 @@ public class TaskAdvancedController {
     /**
      * 流程撤销
      */
-    @PostMapping("revoke")
-    @ApiOperation("任务拿回")
-    @ResponseBody
-    public void revoke(String businessKey) throws Exception {
-
+    @PostMapping("{taskId}revoke")
+    @ApiOperation("任务撤销")
+    public void revoke(@PathVariable String taskId) throws Exception {
+        taskAdvancedService.revoke(taskId);
     }
+
 
     @GetMapping("{taskId}/childNode")
     @ApiOperation("查询子节点列表")
-    @ResponseBody
     public Collection<OptionVo> getChildList(@PathVariable String taskId) {
         return taskAdvancedService.getChildNode(taskId);
     }
@@ -47,7 +45,6 @@ public class TaskAdvancedController {
 
     @GetMapping("{taskId}/parentNode")
     @ApiOperation("查询父节点列表")
-    @ResponseBody
     public Collection<OptionVo> getParentList(@PathVariable String taskId) {
         return taskAdvancedService.getParentNode(taskId);
     }
@@ -61,7 +58,6 @@ public class TaskAdvancedController {
      */
     @PostMapping("jumpBackward")
     @ApiOperation("任意退回")
-    @ResponseBody
     public void jumpBackward(String sourceTaskId, String targetActId) {
         taskAdvancedService.jumpBackward(sourceTaskId, targetActId);
     }
@@ -74,7 +70,6 @@ public class TaskAdvancedController {
      */
     @PostMapping("jumpForward")
     @ApiOperation("任意提交")
-    @ResponseBody
     public void jumpForward(String sourceTaskId, String targetActId) {
         taskAdvancedService.jumpForward(sourceTaskId, targetActId);
     }

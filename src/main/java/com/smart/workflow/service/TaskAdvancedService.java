@@ -13,11 +13,13 @@ import java.util.Collection;
  */
 public interface TaskAdvancedService {
     /**
-     * 任务取回
+     * 任务撤销
      *
-     * @param businessKey 业务id
+     * @param taskId 任务id
      */
-    void revoke(String businessKey) throws Exception;
+    void revoke(String taskId);
+
+
 
     /**
      * 任意跳转
@@ -34,22 +36,6 @@ public interface TaskAdvancedService {
      * @param targetActId  节点定义id，查询跳转目标的流程定义
      */
     void jumpForward(String sourceTaskId, String targetActId);
-
-    /**
-     * 替换待办人员
-     *
-     * @param taskId      任务id
-     * @param replaceUser 替换人员
-     */
-    void transfer(String taskId, String replaceUser);
-
-    /**
-     * 终止流程
-     *
-     * @param businessKey 业务id
-     */
-    void finish(String businessKey);
-
 
     /**
      * 查询任务子节点列表
