@@ -1,7 +1,9 @@
 package com.smart.workflow.controller;
 
 import com.smart.workflow.config.security.SecurityUtil;
+import com.smart.workflow.utils.StringUtils;
 import com.smart.workflow.vo.PageVo;
+import com.smart.workflow.vo.ResultVo;
 import com.smart.workflow.vo.TaskVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.activiti.api.runtime.shared.query.Pageable;
 import org.activiti.api.task.model.Task;
 import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.runtime.TaskRuntime;
+import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
@@ -82,6 +85,7 @@ public class TaskController {
             TaskVo taskVo = new TaskVo();
             BeanUtils.copyProperties(task, taskVo);
             taskVo.setVariables(taskService.getVariables(task.getId()));
+            taskVo.setFormKey(StringUtils.convertStr(taskVo.getFormKey(), taskVo.getVariables()));
             return taskVo;
         }).collect(Collectors.toList());
         return new PageVo(data, taskList.size());
@@ -95,7 +99,6 @@ public class TaskController {
 
     @GetMapping("{taskId}")
     public Task task(@PathVariable String taskId) {
-
         return taskRuntime.task(taskId);
     }
 
@@ -106,15 +109,20 @@ public class TaskController {
     }
 
 
-    @PutMapping("{taskId}/complete")
+    @PostMapping("{taskId}/complete")
     @ApiOperation(value = "完成任务", notes = "进入下一个节点")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "taskId", value = "任务ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "variables", value = "填充参数", dataType = "body", paramType = "query"),
     })
-    public void complete(@PathVariable String taskId, Map<String, Object> variables) {
+    public ResultVo complete(@PathVariable String taskId, @RequestBody Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
-        taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).withVariables(variables).build());
+        try {
+            taskService.complete(taskId, variables);
+        } catch (ActivitiException e) {
+            return new ResultVo(e.getMessage());
+        }
+        return new ResultVo();
     }
 
     @GetMapping("{taskId}/params")

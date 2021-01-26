@@ -24,6 +24,7 @@ public class TaskVo {
     private String standalone;
     private String status;
     private String taskDefinitionKey;
+    private String formKey;
     private Long duration;
     private Map<String, Object> variables;
 }
