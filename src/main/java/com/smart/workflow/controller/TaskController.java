@@ -14,6 +14,8 @@ import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.runtime.TaskRuntime;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.task.Comment;
+import org.activiti.engine.task.TaskQuery;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +120,10 @@ public class TaskController {
     public ResultVo complete(@PathVariable String taskId, @RequestBody Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
         try {
+            if (variables.containsKey("comment")) {
+                org.activiti.engine.task.Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+                taskService.addComment(taskId, task.getProcessInstanceId(), variables.get("comment") + "");
+            }
             taskService.complete(taskId, variables);
         } catch (ActivitiException e) {
             return new ResultVo(e.getMessage());
@@ -136,5 +142,6 @@ public class TaskController {
     public void setAssignee(@PathVariable String taskId, String userId) {
         taskService.setAssignee(taskId, userId);
     }
+
 
 }

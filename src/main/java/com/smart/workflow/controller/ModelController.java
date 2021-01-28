@@ -19,6 +19,7 @@ import org.activiti.engine.repository.ModelQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -55,7 +56,7 @@ public class ModelController {
     @DeleteMapping("{modelId}")
     @ApiOperation(("删除模型"))
     public Object delete(@PathVariable String modelId) {
-        repositoryService.deleteModel(modelId);
+        Arrays.stream(modelId.split(",")).forEach(item -> repositoryService.deleteModel(item));
         return null;
     }
 
@@ -69,7 +70,7 @@ public class ModelController {
             JsonNode editorNode = new ObjectMapper().readTree(sourceBytes);
             BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(editorNode);
 
-            //去除implementationType 使用bean
+            //去除implementationType,  任务事件 使用spring bean 注入对象
             List<Process> processes = bpmnModel.getProcesses();
             for (Process process : processes) {
                 for (FlowElement flowElement : process.getFlowElements()) {

@@ -9,7 +9,6 @@ import org.activiti.engine.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,4 +36,11 @@ public class HisTaskController {
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().list();
         return new PageVo(list);
     }
+
+    @GetMapping
+    @ApiOperation("历史任务信息")
+    public PageVo task(String processInstanceId) {
+        return new  PageVo(historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).list());
+    }
+
 }
