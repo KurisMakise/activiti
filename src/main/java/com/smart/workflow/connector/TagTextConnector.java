@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 public class TagTextConnector implements Connector {
     @Override
     public IntegrationContext apply(IntegrationContext integrationContext) {
+        System.out.println("拒绝休假！！！！！！！！！！！！！！！！");
+
         IntegrationContextImpl integrationContext1 = new IntegrationContextImpl();
         integrationContext1.addInBoundVariable("approved",true);
         integrationContext1.addOutBoundVariable("approved",true);

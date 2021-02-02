@@ -136,36 +136,31 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
             jumpToTarget(sourceTask.getId(), sourceNode, targetNode);
         } else if (tasks.size() > 1) {
             //如果存在多个在途任务，回退和当前任务同级的其他任务
-            ParallelGateway parallelGateway = flowElementRelation.getParallelGateway(bpmnModel);
+            ParallelGateway parallelGateway = new ParallelGateway();
 
             //网关指向目标节点，sourceNode指向网关 ，网关输入修改为当前任务列表，提交任务
-            if (parallelGateway != null) {
-                //记录并行网关原目标
-                List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
-                List<SequenceFlow> incomingFlows = parallelGateway.getIncomingFlows();
-                //设置网关流出节点
-                changeOutgoing(parallelGateway, targetNode);
+            //设置网关流出节点
+            changeOutgoing(parallelGateway, targetNode);
 
-                //查询所有需要跳转到网关的节点
-                List<FlowNode> sourceFlowNodeList = new ArrayList<>();
-                for (Task task : tasks) {
-                    if (elementIdSet.contains(task.getTaskDefinitionKey())) {
-                        sourceFlowNodeList.add((FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()));
-                    }
+            //查询所有需要跳转到网关的节点
+            List<FlowNode> sourceFlowNodeList = new ArrayList<>();
+            for (Task task : tasks) {
+                if (elementIdSet.contains(task.getTaskDefinitionKey())) {
+                    sourceFlowNodeList.add((FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()));
                 }
-                //设置网关流入节点
-                changeIncoming(sourceFlowNodeList, parallelGateway);
-
-                //提交跳转
-                for (Task task : tasks) {
-                    if (elementIdSet.contains(task.getTaskDefinitionKey())) {
-                        jumpToTarget(task.getId(), (FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()), parallelGateway);
-                    }
-                }
-                //还原网关
-                parallelGateway.setOutgoingFlows(outgoingFlows);
-                parallelGateway.setIncomingFlows(incomingFlows);
             }
+            //设置网关流入节点
+            changeIncoming(sourceFlowNodeList, parallelGateway);
+
+            //提交跳转
+            for (Task task : tasks) {
+                if (elementIdSet.contains(task.getTaskDefinitionKey())) {
+                    jumpToTarget(task.getId(), (FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey()), parallelGateway);
+                }
+            }
+            //还原网关
+            parallelGateway.setOutgoingFlows(new ArrayList<>(0));
+            parallelGateway.setIncomingFlows(new ArrayList<>(0));
         }
     }
 
@@ -182,8 +177,13 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
 
         //设置新跳转方向
         changeOutgoing(sourceNode, targetNode);
-        //提交任务
-        taskService.complete(sourceTaskId);
+        try {
+            //提交任务
+            taskService.complete(sourceTaskId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+        }
 
         //还原 源跳转方向
         sourceNode.setOutgoingFlows(sourceOutgoingFlows);

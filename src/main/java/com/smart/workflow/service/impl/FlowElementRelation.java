@@ -45,21 +45,6 @@ public class FlowElementRelation {
         }
     }
 
-    /**
-     * 获取流程图里的网关对象
-     *
-     * @param bpmnModel 流程定义
-     * @return 网关
-     */
-    public ParallelGateway getParallelGateway(BpmnModel bpmnModel) {
-        Collection<FlowElement> flowElementList = getFlowElementList(bpmnModel);
-        for (FlowElement flowElement : flowElementList) {
-            if (flowElement instanceof ParallelGateway) {
-                return (ParallelGateway) flowElement;
-            }
-        }
-        return null;
-    }
 
     /**
      * 查询任务的所有子节点

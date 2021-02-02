@@ -10,10 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
+import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,56 +36,38 @@ public class DeployController {
 
     @Autowired
     private RepositoryService repositoryService;
-//
-//    @GetMapping
-//    @ApiOperation("部署列表")
-//    public Object deployList() {
-//        List<Deployment> list = repositoryService.createDeploymentQuery().list();
-//
-//        List<DeploymentVo> collect = list.stream().map((entity) -> {
-//            DeploymentVo deploymentVo = new DeploymentVo();
-//            BeanUtils.copyProperties(entity, deploymentVo);
-//            return deploymentVo;
-//        }).collect(Collectors.toList());
-//
-//        JSONObject jsonObject = new JSONObject();
-//        JSONObject info = new JSONObject();
-//        info.put("page", 1);
-//        info.put("results", collect.size());
-//        info.put("seed", UUID.randomUUID().toString());
-//        info.put("version", "1.3");
-//
-//        jsonObject.put("info", info);
-//        jsonObject.put("results", collect);
-//        return jsonObject;
-//    }
-//
-//    @GetMapping("{deploymentId}")
-//    @ApiOperation("流程部署详情")
-//    public DeploymentVo deploymentDetail(@PathVariable String deploymentId) {
-//        Deployment deployment = repositoryService.createDeploymentQuery().
-//                deploymentId(deploymentId).singleResult();
-//        DeploymentVo deploymentVo = new DeploymentVo();
-//        BeanUtils.copyProperties(deployment, deploymentVo);
-//        return deploymentVo;
-//    }
+
+    @GetMapping("{deploymentId}")
+    public void test(@PathVariable String deploymentId) {
+        Deployment deployment = repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
+    }
 
     @DeleteMapping("{deploymentId}")
     @ApiOperation("删除已发布实例")
     public void delete(@PathVariable String deploymentId) {
         //删除发布实例   级联删除 repositoryService.deleteDeployment(deploymentId, true)
-        repositoryService.deleteDeployment(deploymentId);
+        Arrays.stream(deploymentId.split(",")).forEach(id -> {
+            repositoryService.deleteDeployment(id);
+        });
     }
 
 
+    @GetMapping
+    @ApiOperation("已部署流程")
+    public List<DeploymentVo> deploy() {
+        return repositoryService.createDeploymentQuery().list().stream().map(deployment -> {
+            DeploymentVo deploymentVo = new DeploymentVo();
+            BeanUtils.copyProperties(deployment, deploymentVo);
+            return deploymentVo;
+        }).collect(Collectors.toList());
+    }
+
     @GetMapping("definition")
     @ApiOperation("已部署流程定义")
-    public List<ProcessDefinitionVo> definitionList() {
-        List<ProcessDefinition> list = repositoryService.createProcessDefinitionQuery().list();
-
-        return list.stream().map((entity) -> {
+    public List<ProcessDefinitionVo> processDefinition() {
+        return repositoryService.createProcessDefinitionQuery().list().stream().map(processDefinition -> {
             ProcessDefinitionVo processDefinitionVo = new ProcessDefinitionVo();
-            BeanUtils.copyProperties(entity, processDefinitionVo);
+            BeanUtils.copyProperties(processDefinition, processDefinitionVo);
             return processDefinitionVo;
         }).collect(Collectors.toList());
     }

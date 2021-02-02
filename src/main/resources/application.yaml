@@ -8,6 +8,7 @@ spring:
   activiti:
     db-history-used: true
     history-level: audit
+    deploymentMode: never-fail
   datasource:
     username: root
     password: root

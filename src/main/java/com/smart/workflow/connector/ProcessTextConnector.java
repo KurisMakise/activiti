@@ -16,6 +16,9 @@ import java.util.function.Function;
 public class ProcessTextConnector  implements Connector {
     @Override
     public IntegrationContext apply(IntegrationContext integrationContext) {
+        System.out.println("同意休假！！！！！！！！！！！！！！！！");
+
+
         IntegrationContextImpl integrationContext1 = new IntegrationContextImpl();
         integrationContext1.addInBoundVariable("approved",true);
         integrationContext1.addOutBoundVariable("approved",true);

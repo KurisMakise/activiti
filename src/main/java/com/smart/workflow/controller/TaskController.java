@@ -10,13 +10,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.activiti.api.runtime.shared.query.Page;
 import org.activiti.api.runtime.shared.query.Pageable;
 import org.activiti.api.task.model.Task;
+import org.activiti.api.task.model.builders.CompleteTaskPayloadBuilder;
 import org.activiti.api.task.model.builders.TaskPayloadBuilder;
+import org.activiti.api.task.model.payloads.CompleteTaskPayload;
 import org.activiti.api.task.runtime.TaskRuntime;
 import org.activiti.engine.ActivitiException;
+import org.activiti.engine.RepositoryService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.TaskQuery;
+import org.activiti.engine.test.ActivitiRule;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
+import org.junit.Rule;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -124,7 +129,7 @@ public class TaskController {
                 org.activiti.engine.task.Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
                 taskService.addComment(taskId, task.getProcessInstanceId(), variables.get("comment") + "");
             }
-            taskService.complete(taskId, variables);
+            taskService.complete(taskId, variables, true);
         } catch (ActivitiException e) {
             return new ResultVo(e.getMessage());
         }

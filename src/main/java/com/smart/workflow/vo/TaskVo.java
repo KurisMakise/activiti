@@ -1,6 +1,7 @@
 package com.smart.workflow.vo;
 
 import lombok.Data;
+import org.activiti.api.task.model.Task;
 
 import java.util.Date;
 import java.util.Map;
@@ -16,13 +17,17 @@ import java.util.Map;
 public class TaskVo {
     private Date reatedDate;
     private Date createdDate;
+    private Date dueDate;
+    private Date claimedDate;
     private String id;
     private String name;
     private Integer priority;
+    private String assignee;
+    private String description;
     private String processDefinitionId;
     private String processInstanceId;
     private String standalone;
-    private String status;
+    private Task.TaskStatus status;
     private String taskDefinitionKey;
     private String formKey;
     private Long duration;

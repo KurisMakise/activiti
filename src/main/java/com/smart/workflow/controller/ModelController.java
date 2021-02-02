@@ -8,7 +8,6 @@ import io.swagger.annotations.ApiSort;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowElement;
-import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.ServiceTask;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.RepositoryService;
@@ -60,9 +59,15 @@ public class ModelController {
         return null;
     }
 
+    private void setImplementType(FlowElement flowElement) {
+        if (flowElement instanceof ServiceTask) {
+            ((ServiceTask) flowElement).setImplementationType(null);
+        }
+    }
+
     @PostMapping("{modelId}/deploy")
     @ApiOperation("流程发布")
-    public Deployment deploy(@PathVariable String modelId, String processName) {
+    public Deployment deploy(@PathVariable String modelId, @RequestParam(defaultValue = "activiti工作流") String processName) {
         Deployment deployment = null;
         try {
             byte[] sourceBytes = repositoryService.getModelEditorSource(modelId);
@@ -71,14 +76,7 @@ public class ModelController {
             BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(editorNode);
 
             //去除implementationType,  任务事件 使用spring bean 注入对象
-            List<Process> processes = bpmnModel.getProcesses();
-            for (Process process : processes) {
-                for (FlowElement flowElement : process.getFlowElements()) {
-                    if (flowElement instanceof ServiceTask) {
-                        ((ServiceTask) flowElement).setImplementationType(null);
-                    }
-                }
-            }
+            bpmnModel.getProcesses().forEach(process -> process.getFlowElements().forEach(this::setImplementType));
 
             DeploymentBuilder deploymentBuilder = repositoryService.createDeployment()
                     .enableDuplicateFiltering()
