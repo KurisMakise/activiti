@@ -1,5 +1,6 @@
 package com.smart.workflow.config.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -20,33 +21,32 @@ import java.util.stream.Collectors;
  * @date 2020/9/24 17:19
  */
 @Configuration
+@Slf4j
 public class UserDetailsService {
-    private Logger logger = LoggerFactory.getLogger(UserDetailsService.class);
-
-    @Bean
-    public org.springframework.security.core.userdetails.UserDetailsService myUserDetailsService() {
-
-        InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
-
-        String[][] usersGroupsAndRoles = {
-                {"user", "password", "ROLE_ACTIVITI_USER","GROUP_start","GROUP_admin"},
-                {"admin", "password", "ROLE_ACTIVITI_ADMIN","ROLE_ADMIN","GROUP_ADMIN","GROUP_start"},
-                {"yga", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_admin"},
-                {"supervisor", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_supervisor"},
-                {"manager", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_manager"},
-                {"generalManager", "password", "ROLE_ACTIVITI_ADMIN","GROUP_start","GROUP_generalManager"},
-        };
-
-        for (String[] user : usersGroupsAndRoles) {
-
-            List<String> authoritiesStrings = Arrays.asList(Arrays.copyOfRange(user, 2, user.length));
-            logger.info("> Registering new user: " + user[0] + " with the following Authorities[" + authoritiesStrings + "]");
-            inMemoryUserDetailsManager.createUser(new User(user[0], passwordEncoder().encode(user[1]),
-                    authoritiesStrings.stream().map(s -> new SimpleGrantedAuthority(s)).collect(Collectors.toList())));
-        }
-
-        return inMemoryUserDetailsManager;
-    }
+//    @Bean
+//    public org.springframework.security.core.userdetails.UserDetailsService myUserDetailsService() {
+//
+//        InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
+//
+//        String[][] usersGroupsAndRoles = {
+//                {"user", "password", "ROLE_ACTIVITI_USER", "GROUP_start", "GROUP_admin"},
+//                {"admin", "password", "ROLE_ACTIVITI_ADMIN", "ROLE_ADMIN", "GROUP_ADMIN", "GROUP_start"},
+//                {"yga", "password", "ROLE_ACTIVITI_ADMIN", "GROUP_start", "GROUP_admin"},
+//                {"supervisor", "password", "ROLE_ACTIVITI_ADMIN", "GROUP_start", "GROUP_supervisor"},
+//                {"manager", "password", "ROLE_ACTIVITI_ADMIN", "GROUP_start", "GROUP_manager"},
+//                {"generalManager", "password", "ROLE_ACTIVITI_ADMIN", "GROUP_start", "GROUP_generalManager"},
+//        };
+//
+//        for (String[] user : usersGroupsAndRoles) {
+//
+//            List<String> authoritiesStrings = Arrays.asList(Arrays.copyOfRange(user, 2, user.length));
+//            log.info("> Registering new user: " + user[0] + " with the following Authorities[" + authoritiesStrings + "]");
+//            inMemoryUserDetailsManager.createUser(new User(user[0], passwordEncoder().encode(user[1]),
+//                    authoritiesStrings.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())));
+//        }
+//
+//        return inMemoryUserDetailsManager;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
