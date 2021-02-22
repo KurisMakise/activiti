@@ -2,9 +2,7 @@ package com.smart.workflow.controller;
 
 import com.alibaba.fastjson.JSON;
 import org.activiti.api.runtime.shared.security.SecurityManager;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,11 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2021/02/02 16:18
  */
 @RestController
-@RequestMapping()
+@RequestMapping("user")
 public class UserController {
 
     @Autowired
     private SecurityManager securityManager;
+
 
     @GetMapping("currentUser")
     public Object currentUser() {

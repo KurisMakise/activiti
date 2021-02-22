@@ -1,5 +1,7 @@
 package com.smart.workflow.config.security;
 
+import com.smart.workflow.config.security.handler.CusAuthenticationFailureHandler;
+import com.smart.workflow.config.security.handler.CusAuthenticationSuccessHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,31 +30,45 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthenticationProvider authenticationProvider;
 
     @Autowired
+    private CusAuthenticationSuccessHandler cusAuthenticationSuccessHandler;
+
+    @Autowired
+    private CusAuthenticationFailureHandler cusAuthenticationFailureHandler;
+
+    @Autowired
     @Qualifier("userDetailsServiceImpl")
     private UserDetailsService userDetailsService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().ignoringAntMatchers("/login").csrfTokenRepository(csrfTokenRepository)
-                .and()
+//                .csrf().ignoringAntMatchers("/login").csrfTokenRepository(csrfTokenRepository)
+                .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/login").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
                 .formLogin()
+                .successHandler(cusAuthenticationSuccessHandler)
+                .failureHandler(cusAuthenticationFailureHandler)
                 .loginPage("http://localhost:8000/user/login")
                 .loginProcessingUrl("/login")
                 .permitAll()
                 .and()
+                .logout().deleteCookies("JSESSIONID")
+                .permitAll()
+                .and()
                 .httpBasic();
+        http
+                .headers()
+                .frameOptions().disable();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("user").roles("")
+        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("user").roles("ACTIVITI_USER")
                 .password(new BCryptPasswordEncoder().encode("ant.design"));
+
         auth.authenticationProvider(authenticationProvider);
         auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
     }

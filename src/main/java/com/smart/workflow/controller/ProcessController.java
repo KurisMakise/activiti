@@ -37,8 +37,14 @@ public class ProcessController {
     @GetMapping("instance")
     @ApiOperation("流程实例分页")
     public PageVo instance(PageVo pageVo) {
-        Page<ProcessInstance> pageResult = processRuntime.processInstances(Pageable.of(pageVo.getStart(), pageVo.getEnd()));
-        return pageVo.setData(pageResult.getContent(), pageResult.getTotalItems());
+        try {
+            Page<ProcessInstance> pageResult = processRuntime.processInstances(Pageable.of(pageVo.getStart(), pageVo.getEnd()));
+            return pageVo.setData(pageResult.getContent(), pageResult.getTotalItems());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     @GetMapping("{processDefinitionId}")
