@@ -1,4 +1,4 @@
-1：本项目集成了springboot7+activti7+流程设计器一体
+1：本项目集成了springboot+activti7+流程设计器一体
 
 2：修改application.properties 里面数据库配置即可启动
 
