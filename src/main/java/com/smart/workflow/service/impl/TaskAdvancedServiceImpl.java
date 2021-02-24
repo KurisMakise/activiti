@@ -14,6 +14,7 @@ import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.task.Task;
+import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -179,7 +180,10 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
         changeOutgoing(sourceNode, targetNode);
         try {
             //提交任务
-            taskService.complete(sourceTaskId);
+            Task task = taskService.createTaskQuery().taskId(sourceTaskId).singleResult();
+            if (task != null) {
+                taskService.complete(sourceTaskId);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             log.error(e.getMessage());

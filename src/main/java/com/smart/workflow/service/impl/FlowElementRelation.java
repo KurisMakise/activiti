@@ -143,7 +143,9 @@ public class FlowElementRelation {
             for (SequenceFlow sequenceFlow : sequenceFlowList) {
                 String tmpElementId;
                 FlowElement tmpElement;
-
+                if (sequenceFlow.getSourceRef().equals(sequenceFlow.getTargetRef())) {
+                    continue;
+                }
                 //查询父节点，获取从哪来
                 if (queryType == QueryType.PARENT) {
                     tmpElementId = sequenceFlow.getSourceRef();
