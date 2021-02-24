@@ -32,15 +32,16 @@ public class HisTaskController {
     @GetMapping("list")
     @ApiOperation("历史任务列表")
     public PageVo hisTaskList() {
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().orderByTaskCreateTime().desc().list();
 
-        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().list();
+
         return new PageVo(list);
     }
 
     @GetMapping
     @ApiOperation("历史任务信息")
     public PageVo task(String processInstanceId) {
-        return new  PageVo(historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).list());
+        return new PageVo(historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).list());
     }
 
 }
