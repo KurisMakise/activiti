@@ -76,12 +76,12 @@ public class TestController {
     public void testFlow() {
         Model model = repositoryService.createModelQuery().modelName("审批流程").singleResult();
 
-        Deployment processUnitTest = modelController.deploy(model.getId(), "processUnitTest");
+        Deployment processUnitTest = (Deployment) modelController.deploy(model.getId(), "processUnitTest").getData();
 
         //启动流程
         String businessKey = UUID.randomUUID().toString();
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(processUnitTest.getId()).singleResult();
-        ProcessInstance test = processController.start(processDefinition.getId(), "test", businessKey, null);
+        ProcessInstance test = (ProcessInstance) processController.start(processDefinition.getId(), "test", businessKey, null).getData();
         try {
             securityUtil.logInAs("supervisor");
             Task task = taskController.getTaskByProcessInstanceId(test.getId()).get(0);

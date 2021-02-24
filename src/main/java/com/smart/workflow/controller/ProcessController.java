@@ -1,7 +1,7 @@
 package com.smart.workflow.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.smart.workflow.vo.PageVo;
+import com.smart.workflow.vo.ResultVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiSort;
@@ -14,7 +14,6 @@ import org.activiti.api.runtime.shared.query.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -55,15 +54,24 @@ public class ProcessController {
 
     @PostMapping("start")
     @ApiOperation("启动流程")
-    public ProcessInstance start(String processDefinitionKey, String name, String businessKey, @RequestBody Map<String, Object> variables) {
-        variables.put("user", Arrays.asList("yg1", "yg2", "yg3"));
-        return processRuntime.start(ProcessPayloadBuilder.
-                start()
-                .withProcessDefinitionKey(processDefinitionKey)
-                .withName(name)
-                .withBusinessKey(businessKey)
-                .withVariables(variables)
-                .build());
+    public ResultVo start(String processDefinitionKey, String name, String businessKey, @RequestBody Map<String, Object> variables) {
+        if (processDefinitionKey == null) {
+            return new ResultVo("请选择流程!");
+        }
+        ProcessInstance start;
+        try {
+            start = processRuntime.start(ProcessPayloadBuilder.
+                    start()
+                    .withProcessDefinitionKey(processDefinitionKey)
+                    .withName(name)
+                    .withBusinessKey(businessKey)
+                    .withVariables(variables)
+                    .build());
+        } catch (Exception e) {
+            return new ResultVo(e.getMessage());
+        }
+
+        return new ResultVo(start);
     }
 
     @DeleteMapping("{processInstanceId}")

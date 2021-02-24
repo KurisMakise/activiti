@@ -2,6 +2,7 @@ package com.smart.workflow.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smart.workflow.vo.ResultVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiSort;
@@ -67,7 +68,7 @@ public class ModelController {
 
     @PostMapping("{modelId}/deploy")
     @ApiOperation("流程发布")
-    public Deployment deploy(@PathVariable String modelId, @RequestParam(defaultValue = "activiti工作流") String processName) {
+    public ResultVo deploy(@PathVariable String modelId, @RequestParam(defaultValue = "activiti工作流") String processName) {
         Deployment deployment = null;
         try {
             byte[] sourceBytes = repositoryService.getModelEditorSource(modelId);
@@ -85,7 +86,9 @@ public class ModelController {
             deployment = deploymentBuilder.deploy();
         } catch (Exception e) {
             log.error("根据modelId部署流程,异常:{}", e.getMessage());
+            return new ResultVo(e.getMessage());
         }
-        return deployment;
+
+        return new ResultVo(deployment);
     }
 }
