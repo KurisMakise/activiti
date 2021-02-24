@@ -10,9 +10,14 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author violet
@@ -66,8 +71,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("user").roles("ACTIVITI_USER")
-                .password(new BCryptPasswordEncoder().encode("ant.design"));
+        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder())
+                .withUser("user").authorities("GROUP_ACTIVITI_USER", "ROLE_ACTIVITI_USER")
+
+                .password(new BCryptPasswordEncoder().encode("1"));
 
         auth.authenticationProvider(authenticationProvider);
         auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
