@@ -65,6 +65,5 @@ public class SecurityUtil {
                 return user.getUsername();
             }
         }));
-        org.activiti.engine.impl.identity.Authentication.setAuthenticatedUserId(username);
-    }
+     }
 }

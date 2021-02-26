@@ -44,22 +44,6 @@ public class TaskController {
     private TaskService taskService;
 
 
-    @Autowired
-    private SecurityUtil securityUtil;
-
-    @PostMapping("create")
-    @ApiOperation("创建任务")
-    public void create(String taskName, String description, String group, int priority) {
-        taskRuntime.create(
-                TaskPayloadBuilder.create()
-                        .withName(taskName)
-                        .withDescription(description)
-//                        .withCandidateGroup(group)
-                        .withPriority(priority)
-                        .build()
-        );
-    }
-
     @GetMapping("processInstanceId")
     @ApiOperation("通过实例id查询任务")
     public List<Task> getTaskByProcessInstanceId(String processInstanceId) {

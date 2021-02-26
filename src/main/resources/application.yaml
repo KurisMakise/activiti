@@ -38,6 +38,10 @@ mybatis:
 server:
   port: 8001
   servlet:
+    session:
+      timeout: 9999999
+      cookie:
+        name: ASESSIONID
     context-path:
 feign:
   client:
