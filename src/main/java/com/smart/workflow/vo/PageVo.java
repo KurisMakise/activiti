@@ -1,6 +1,7 @@
 package com.smart.workflow.vo;
 
 import lombok.Data;
+import org.activiti.api.runtime.shared.query.Pageable;
 
 import java.util.List;
 
@@ -27,6 +28,10 @@ public class PageVo {
         setData(data, total);
     }
 
+    public Pageable getPageable() {
+        return Pageable.of(getFirstResult(), getMaxResults());
+    }
+
     public PageVo setData(List<?> data, long total) {
         this.data = data;
         this.total = total;
@@ -34,11 +39,11 @@ public class PageVo {
         return this;
     }
 
-    public int getStart() {
+    public int getFirstResult() {
         return (current - 1) * pageSize;
     }
 
-    public int getEnd() {
+    public int getMaxResults() {
         return current * pageSize;
     }
 

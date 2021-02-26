@@ -78,16 +78,17 @@ public class TaskController {
 
     @GetMapping("list")
     @ApiOperation("查询所有任务")
-    public PageVo taskAll() {
-        List<Task> taskList = apiTaskConverter.from(taskService.createTaskQuery().list());
-        List<TaskVo> data = taskList.stream().map(task -> {
+    public PageVo taskAll(PageVo pageVo) {
+        Page<Task> page = taskRuntime.tasks(pageVo.getPageable());
+        List<TaskVo> data = page.getContent().stream().map(task -> {
             TaskVo taskVo = new TaskVo();
             BeanUtils.copyProperties(task, taskVo);
             taskVo.setVariables(taskService.getVariables(task.getId()));
             taskVo.setFormKey(StringUtils.convertStr(taskVo.getFormKey(), taskVo.getVariables()));
             return taskVo;
         }).collect(Collectors.toList());
-        return new PageVo(data, taskList.size());
+
+        return new PageVo(data, page.getTotalItems());
     }
 
     @GetMapping
@@ -141,9 +142,15 @@ public class TaskController {
 
     @PostMapping("{taskId}/assignee")
     @ApiOperation("设置任务处理人")
-    public void setAssignee(@PathVariable String taskId, String userId) {
-        taskService.setAssignee(taskId, userId);
+    public ResultVo setAssignee(@PathVariable String taskId, String userId) {
+        if (userId == null) {
+            return new ResultVo("替换人不能为空");
+        }
+        try {
+            taskService.setAssignee(taskId, userId);
+            return new ResultVo();
+        } catch (Exception e) {
+            return new ResultVo(e.getMessage());
+        }
     }
-
-
 }

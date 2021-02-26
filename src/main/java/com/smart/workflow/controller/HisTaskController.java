@@ -31,11 +31,12 @@ public class HisTaskController {
 
     @GetMapping("list")
     @ApiOperation("历史任务列表")
-    public PageVo hisTaskList() {
-        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().orderByTaskCreateTime().desc().list();
+    public PageVo hisTaskList(PageVo pageVo) {
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery()
+                .orderByTaskCreateTime().desc().listPage(pageVo.getFirstResult(), pageVo.getMaxResults());
 
 
-        return new PageVo(list);
+        return new PageVo(list, historyService.createHistoricTaskInstanceQuery().count());
     }
 
     @GetMapping

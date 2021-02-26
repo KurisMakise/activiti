@@ -9,6 +9,7 @@ spring:
     db-history-used: true
     history-level: audit
     deploymentMode: never-fail
+    check-process-definitions: false
   datasource:
     username: root
     password: root

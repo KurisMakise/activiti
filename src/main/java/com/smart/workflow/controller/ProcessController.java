@@ -10,10 +10,10 @@ import org.activiti.api.process.model.ProcessInstance;
 import org.activiti.api.process.model.builders.ProcessPayloadBuilder;
 import org.activiti.api.process.runtime.ProcessRuntime;
 import org.activiti.api.runtime.shared.query.Page;
-import org.activiti.api.runtime.shared.query.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -37,7 +37,7 @@ public class ProcessController {
     @ApiOperation("流程实例分页")
     public PageVo instance(PageVo pageVo) {
         try {
-            Page<ProcessInstance> pageResult = processRuntime.processInstances(Pageable.of(pageVo.getStart(), pageVo.getEnd()));
+            Page<ProcessInstance> pageResult = processRuntime.processInstances(pageVo.getPageable());
             return pageVo.setData(pageResult.getContent(), pageResult.getTotalItems());
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,8 +77,11 @@ public class ProcessController {
     @DeleteMapping("{processInstanceId}")
     @ApiOperation("删除流程实例")
     public void delete(@PathVariable String processInstanceId) {
-        processRuntime.delete(ProcessPayloadBuilder
-                .delete(processInstanceId));
+        Arrays.stream(processInstanceId.split(",")).forEach(id -> {
+            processRuntime.delete(ProcessPayloadBuilder
+                    .delete(id));
+        });
+
     }
 
     @PostMapping("{processInstanceId}/suspend")
