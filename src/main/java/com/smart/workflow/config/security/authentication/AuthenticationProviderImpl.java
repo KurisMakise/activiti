@@ -24,7 +24,7 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (authentication.getName().equals("admin")) {
-            String[] roles = {"ROLE_ACTIVITI_USER", "GROUP_USER", "GROUP_ADMIN","GROUP_TEST"};
+            String[] roles = {"ROLE_ACTIVITI_USER", "GROUP_USER", "GROUP_ADMIN", "GROUP_TEST", "ROLE_ADMIN"};
             return new UsernamePasswordAuthenticationToken("admin", "1", Arrays.stream(roles).map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
         } else {
             return null;

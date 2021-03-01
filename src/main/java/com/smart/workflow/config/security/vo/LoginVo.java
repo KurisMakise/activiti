@@ -2,6 +2,8 @@ package com.smart.workflow.config.security.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author violet
  * @version 1.0
@@ -13,7 +15,7 @@ public class LoginVo {
 
     }
 
-    public LoginVo(String currentAuthority) {
+    public LoginVo(List<String> currentAuthority) {
         this.currentAuthority = currentAuthority;
         this.success = true;
     }
@@ -22,7 +24,7 @@ public class LoginVo {
     /**
      * 角色权限
      */
-    private String currentAuthority;
+    private List<String> currentAuthority;
     /**
      * 登录成功
      */

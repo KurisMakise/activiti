@@ -32,7 +32,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new UserDetails() {
             @Override
             public Collection<? extends GrantedAuthority> getAuthorities() {
-                String[] roles = {"ROLE_ACTIVITI_USER", "GROUP_USER", "GROUP_TEST", "GROUP_ADMIN"};
+                String[] roles = {"ROLE_ACTIVITI_USER", "GROUP_USER", "GROUP_TEST", "ROLE_USER"};
                 return Arrays.stream(roles).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
             }
 
