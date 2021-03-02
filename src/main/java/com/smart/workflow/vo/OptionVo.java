@@ -13,15 +13,25 @@ import lombok.Data;
 @Data
 public class OptionVo {
 
-    /**
-     * 选项值
-     */
-    @JSONField(name = "id")
-    private String value;
+    public OptionVo() {
+
+    }
+
+    public OptionVo(String label, String value) {
+        this.label = label;
+        this.value = value;
+    }
 
     /**
      * 页面显示名称
      */
     @JSONField(name = "name")
     private String label;
+    /**
+     * 选项值
+     */
+    @JSONField(name = "id")
+    private String value;
+
+
 }

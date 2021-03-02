@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.Task;
+import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,26 +30,30 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @Api(tags = "任务管理")
-@PreAuthorize("hasRole('ACTIVITI_MANAGER')")
+@PreAuthorize("hasAnyRole('ACTIVITI_MANAGER','ADMIN')")
 public class TaskManagerController {
 
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private APITaskConverter apiTaskConverter;
 
     @GetMapping("list")
     @ApiOperation("分页查询")
     public PageVo list(PageVo pageVo) {
         List<Task> tasks = taskService.createTaskQuery().listPage(pageVo.getFirstResult(), pageVo.getMaxResults());
 
-        List<TaskVo> data = tasks.stream().map(task -> {
+        List<org.activiti.api.task.model.Task> data = apiTaskConverter.from(tasks);
+
+        List<TaskVo> taskVos = data.stream().map(task -> {
             TaskVo taskVo = new TaskVo();
             BeanUtils.copyProperties(task, taskVo);
             taskVo.setVariables(taskService.getVariables(task.getId()));
             taskVo.setFormKey(StringUtils.convertStr(taskVo.getFormKey(), taskVo.getVariables()));
             return taskVo;
         }).collect(Collectors.toList());
-        pageVo.setData(data, taskService.createTaskQuery().count());
+        pageVo.setData(taskVos, taskService.createTaskQuery().count());
         return pageVo;
     }
 
