@@ -6,7 +6,9 @@ import com.smart.workflow.vo.TaskVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.activiti.engine.RepositoryService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.task.Task;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +41,10 @@ public class TaskManagerController {
     @Autowired
     private APITaskConverter apiTaskConverter;
 
+
+    @Autowired
+    private RepositoryService repositoryService;
+
     @GetMapping("list")
     @ApiOperation("分页查询")
     public PageVo list(PageVo pageVo) {
@@ -51,6 +57,10 @@ public class TaskManagerController {
             BeanUtils.copyProperties(task, taskVo);
             taskVo.setVariables(taskService.getVariables(task.getId()));
             taskVo.setFormKey(StringUtils.convertStr(taskVo.getFormKey(), taskVo.getVariables()));
+            ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(taskVo.getProcessDefinitionId()).singleResult();
+            if (processDefinition != null) {
+                taskVo.setProcessName(processDefinition.getName());
+            }
             return taskVo;
         }).collect(Collectors.toList());
         pageVo.setData(taskVos, taskService.createTaskQuery().count());

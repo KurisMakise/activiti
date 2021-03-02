@@ -24,6 +24,7 @@ public class TaskVo {
     private Integer priority;
     private String assignee;
     private String description;
+    private String processName;
     private String processDefinitionId;
     private String processInstanceId;
     private String standalone;

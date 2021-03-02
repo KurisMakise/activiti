@@ -7,12 +7,16 @@ import com.smart.workflow.vo.ResultVo;
 import com.smart.workflow.vo.TaskVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.activiti.api.process.runtime.ProcessRuntime;
 import org.activiti.api.runtime.shared.query.Page;
 import org.activiti.api.runtime.shared.query.Pageable;
 import org.activiti.api.task.model.Task;
 import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.api.task.runtime.TaskRuntime;
+import org.activiti.engine.RepositoryService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.runtime.api.model.impl.APITaskConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +64,9 @@ public class TaskController {
     @Autowired
     private APITaskConverter apiTaskConverter;
 
+    @Autowired
+    private RepositoryService repositoryService;
+
     @GetMapping("list")
     @ApiOperation("查询所有任务")
     public PageVo taskAll(PageVo pageVo) {
@@ -69,6 +76,10 @@ public class TaskController {
             BeanUtils.copyProperties(task, taskVo);
             taskVo.setVariables(taskService.getVariables(task.getId()));
             taskVo.setFormKey(StringUtils.convertStr(taskVo.getFormKey(), taskVo.getVariables()));
+            ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(taskVo.getProcessDefinitionId()).singleResult();
+            if (processDefinition != null) {
+                taskVo.setProcessName(processDefinition.getName());
+            }
             return taskVo;
         }).collect(Collectors.toList());
 
