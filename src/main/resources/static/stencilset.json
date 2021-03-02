@@ -148,7 +148,7 @@
     "properties" : [ {
       "id" : "formkeydefinition",
       "type" : "String",
-      "title" : "表单的标识Key",
+      "title" : "页面URL地址",
       "value" : "",
       "description" : "表单的Key(指向定义的Form).",
       "popular" : true
