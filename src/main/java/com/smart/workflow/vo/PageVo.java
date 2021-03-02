@@ -29,7 +29,7 @@ public class PageVo {
     }
 
     public Pageable getPageable() {
-        return Pageable.of(getFirstResult(), getMaxResults());
+        return Pageable.of(getFirstResult(), pageSize);
     }
 
     public PageVo setData(List<?> data, long total) {
@@ -43,9 +43,6 @@ public class PageVo {
         return (current - 1) * pageSize;
     }
 
-    public int getMaxResults() {
-        return current * pageSize;
-    }
 
     /**
      * 当前页

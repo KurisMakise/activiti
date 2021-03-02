@@ -1,4 +1,4 @@
-package com.smart.workflow.controller;
+package com.smart.workflow.controller.task;
 
 import com.smart.workflow.utils.StringUtils;
 import com.smart.workflow.vo.PageVo;
@@ -48,7 +48,7 @@ public class TaskManagerController {
     @GetMapping("list")
     @ApiOperation("分页查询")
     public PageVo list(PageVo pageVo) {
-        List<Task> tasks = taskService.createTaskQuery().listPage(pageVo.getFirstResult(), pageVo.getMaxResults());
+        List<Task> tasks = taskService.createTaskQuery().listPage(pageVo.getFirstResult(), pageVo.getPageSize());
 
         List<org.activiti.api.task.model.Task> data = apiTaskConverter.from(tasks);
 

@@ -1,4 +1,4 @@
-package com.smart.workflow.controller;
+package com.smart.workflow.controller.task;
 
 import com.smart.workflow.config.security.SecurityUtil;
 import com.smart.workflow.utils.StringUtils;

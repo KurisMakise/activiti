@@ -1,4 +1,4 @@
-package com.smart.workflow.controller;
+package com.smart.workflow.controller.task;
 
 import com.smart.workflow.service.TaskAdvancedService;
 import com.smart.workflow.vo.OptionVo;
