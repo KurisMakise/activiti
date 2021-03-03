@@ -1,10 +1,7 @@
 package com.smart.workflow.listener;
 
 import lombok.extern.slf4j.Slf4j;
-import org.activiti.api.task.runtime.events.TaskActivatedEvent;
-import org.activiti.api.task.runtime.events.TaskAssignedEvent;
-import org.activiti.api.task.runtime.events.TaskCancelledEvent;
-import org.activiti.api.task.runtime.events.TaskCompletedEvent;
+import org.activiti.api.task.runtime.events.*;
 import org.activiti.api.task.runtime.events.listener.TaskRuntimeEventListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +16,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Slf4j
 public class TaskEventListener {
+
+
+    @Bean
+    public TaskRuntimeEventListener<TaskCreatedEvent> taskCreatedListener() {
+        return taskCreatedEvent -> {
+
+            log.info(">>> task created:'"
+                    + taskCreatedEvent.getEntity().getName() + "'");
+        };
+    }
 
     @Bean
     public TaskRuntimeEventListener<TaskAssignedEvent> taskAssignedListener() {
