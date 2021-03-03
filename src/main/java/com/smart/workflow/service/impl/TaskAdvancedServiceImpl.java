@@ -74,7 +74,7 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
         }
 
         if (revokeTasks.size() == 0) {
-            throw new Exception("流程任务已被执行无法拿回");
+            throw new Exception("流程任务已被执行无法取回");
         }
         revokeTasks.forEach(task -> {
             jumpBackward(task.getId(), historicTaskInstance.getTaskDefinitionKey());
