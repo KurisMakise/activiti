@@ -14,7 +14,6 @@ import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.task.Task;
-import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,17 +58,45 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
         HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
         BpmnModel bpmnModel = repositoryService.getBpmnModel(historicTaskInstance.getProcessDefinitionId());
 
-        //查询下个节点
+        List<Task> tasks = taskService.createTaskQuery()
+                .processInstanceId(historicTaskInstance.getProcessInstanceId()).list();
+
         FlowNode flowNode = (FlowNode) bpmnModel.getFlowElement(historicTaskInstance.getTaskDefinitionKey());
         List<SequenceFlow> outgoingFlows = flowNode.getOutgoingFlows();
-        //退回
+
+        Map<String, Task> taskMap = new HashMap<>(tasks.size());
+        tasks.forEach(task -> taskMap.put(task.getTaskDefinitionKey(), task));
+
+        List<Task> revokeTasks = new ArrayList<>(taskMap.size());
+        //查询需要回退节点
         for (SequenceFlow sequenceFlow : outgoingFlows) {
-            Task task = taskService.createTaskQuery()
-                    .processInstanceId(historicTaskInstance.getProcessInstanceId())
-                    .taskDefinitionKey(sequenceFlow.getTargetRef()).singleResult();
-            if (task != null) {
-                jumpBackward(task.getId(), historicTaskInstance.getTaskDefinitionKey());
-                break;
+            getFirstUserTask(taskMap, revokeTasks, sequenceFlow);
+        }
+
+        revokeTasks.forEach(task -> {
+            jumpBackward(task.getId(), historicTaskInstance.getTaskDefinitionKey());
+        });
+    }
+
+
+    /**
+     * 获取历史任务的下一个活动任务节点集合
+     *
+     * @param taskMap      在途任务集合
+     * @param retTasks     符合下一个任务节点集合
+     * @param sequenceFlow 当前流程流转路线
+     */
+    private void getFirstUserTask(Map<String, Task> taskMap, List<Task> retTasks, SequenceFlow sequenceFlow) {
+        FlowElement targetFlowElement = sequenceFlow.getTargetFlowElement();
+
+        if (targetFlowElement instanceof UserTask) {
+            if (taskMap.containsKey(targetFlowElement.getId())) {
+                retTasks.add(taskMap.get(targetFlowElement.getId()));
+            }
+        } else if (targetFlowElement instanceof FlowNode) {
+            List<SequenceFlow> outgoingFlows = ((FlowNode) targetFlowElement).getOutgoingFlows();
+            for (SequenceFlow flow : outgoingFlows) {
+                getFirstUserTask(taskMap, retTasks, flow);
             }
         }
     }
@@ -182,6 +209,7 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
             //提交任务
             Task task = taskService.createTaskQuery().taskId(sourceTaskId).singleResult();
             if (task != null) {
+                taskService.addComment(sourceTaskId, task.getProcessInstanceId(), "任务跳转: " + task.getName() + "->" + targetNode.getName());
                 taskService.complete(sourceTaskId);
             }
         } catch (Exception e) {

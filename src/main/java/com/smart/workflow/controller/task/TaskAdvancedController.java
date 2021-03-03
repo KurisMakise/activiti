@@ -29,7 +29,7 @@ public class TaskAdvancedController {
     /**
      * 流程撤销
      */
-    @PostMapping("{taskId}revoke")
+    @PostMapping("{taskId}/revoke")
     @ApiOperation("任务撤销")
     public void revoke(@PathVariable String taskId) throws Exception {
         taskAdvancedService.revoke(taskId);

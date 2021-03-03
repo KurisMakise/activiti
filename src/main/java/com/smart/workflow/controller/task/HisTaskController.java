@@ -64,7 +64,9 @@ public class HisTaskController {
         HistoricTaskInstanceQuery historicTaskInstanceQuery = historyService.createHistoricTaskInstanceQuery()
                 .or().taskAssignee(userName).taskOwner(userName).endOr();
         List<HistoricTaskInstance> data =
-                historicTaskInstanceQuery.listPage(pageVo.getFirstResult(), pageVo.getPageSize());
+                historicTaskInstanceQuery
+                        .orderByHistoricTaskInstanceEndTime().desc()
+                        .listPage(pageVo.getFirstResult(), pageVo.getPageSize());
 
         pageVo.setData(data, historicTaskInstanceQuery.count());
         return pageVo;
