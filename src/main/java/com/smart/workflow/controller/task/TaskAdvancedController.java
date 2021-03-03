@@ -2,6 +2,7 @@ package com.smart.workflow.controller.task;
 
 import com.smart.workflow.service.TaskAdvancedService;
 import com.smart.workflow.vo.OptionVo;
+import com.smart.workflow.vo.ResultVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,13 @@ public class TaskAdvancedController {
      */
     @PostMapping("{taskId}/revoke")
     @ApiOperation("任务撤销")
-    public void revoke(@PathVariable String taskId) throws Exception {
-        taskAdvancedService.revoke(taskId);
+    public ResultVo revoke(@PathVariable String taskId) {
+        try {
+            taskAdvancedService.revoke(taskId);
+            return new ResultVo();
+        } catch (Exception e) {
+            return new ResultVo(e.getMessage());
+        }
     }
 
 

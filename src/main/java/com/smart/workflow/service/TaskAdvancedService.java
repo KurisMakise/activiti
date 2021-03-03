@@ -16,9 +16,9 @@ public interface TaskAdvancedService {
      * 任务撤销
      *
      * @param taskId 任务id
+     * @throws Exception 任务已被执行无法取回
      */
-    void revoke(String taskId);
-
+    void revoke(String taskId) throws Exception;
 
 
     /**

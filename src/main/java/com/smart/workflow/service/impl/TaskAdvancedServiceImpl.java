@@ -54,7 +54,7 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void revoke(String taskId) {
+    public void revoke(String taskId) throws Exception {
         HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
         BpmnModel bpmnModel = repositoryService.getBpmnModel(historicTaskInstance.getProcessDefinitionId());
 
@@ -73,6 +73,9 @@ public class TaskAdvancedServiceImpl implements TaskAdvancedService {
             getFirstUserTask(taskMap, revokeTasks, sequenceFlow);
         }
 
+        if (revokeTasks.size() == 0) {
+            throw new Exception("流程任务已被执行无法拿回");
+        }
         revokeTasks.forEach(task -> {
             jumpBackward(task.getId(), historicTaskInstance.getTaskDefinitionKey());
         });
