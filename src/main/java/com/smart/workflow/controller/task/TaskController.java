@@ -118,6 +118,7 @@ public class TaskController {
     public ResultVo complete(@PathVariable String taskId, @RequestBody Map<String, Object> variables) {
         log.info(">>> task:" + taskId + " complete");
         try {
+            claim(taskId);
             if (variables.containsKey("comment")) {
                 org.activiti.engine.task.Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
                 taskService.addComment(taskId, task.getProcessInstanceId(), variables.get("comment") + "");
