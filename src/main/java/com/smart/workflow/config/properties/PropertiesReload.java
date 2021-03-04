@@ -16,7 +16,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * @author k.makise
  */
-@Component
+//@Component
 public class PropertiesReload extends PropertySourcesPlaceholderConfigurer {
 
 

@@ -24,8 +24,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 @Slf4j
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private CsrfTokenRepository csrfTokenRepository;
+
 
     @Autowired
     private AuthenticationProvider authenticationProvider;

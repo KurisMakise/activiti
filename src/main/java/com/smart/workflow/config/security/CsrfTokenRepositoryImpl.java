@@ -26,7 +26,7 @@ import java.util.UUID;
  * @date 2021/02/03 13:45
  */
 @Slf4j
-@Component
+//@Component
 public class CsrfTokenRepositoryImpl implements CsrfTokenRepository {
     public static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
     public static final String CSRF_PARAM_NAME = "_csrf";

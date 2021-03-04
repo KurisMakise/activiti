@@ -19,9 +19,9 @@ import java.net.UnknownHostException;
  *
  * @author violet
  */
-@Configuration
-@ConditionalOnClass(RedisOperations.class)
-@EnableConfigurationProperties(RedisProperties.class)
+//@Configuration
+//@ConditionalOnClass(RedisOperations.class)
+//@EnableConfigurationProperties(RedisProperties.class)
 public class RedisAutoConfig {
 
     @Bean
